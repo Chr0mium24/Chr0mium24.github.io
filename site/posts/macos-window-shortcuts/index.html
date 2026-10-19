@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MacOS自定义快捷键打开窗口 · 某某</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-screen-webfont/lxgwwenkaigbscreen.css">
+<link rel="stylesheet" href="/assets/site.css">
+<script type="module" src="/assets/page.js"></script>
+</head>
+<body>
+<header class="site"><a class="name" href="/">某某</a><nav><a href="/#essays">随笔</a><a href="/#notes" aria-current="page">笔记</a><a href="/#tools">小工具</a></nav></header>
+<main class="post">
+  <div class="kicker"><span>经验</span><span>2026-04-16</span></div>
+  <h1>MacOS自定义快捷键打开窗口</h1>
+<p>微信的<code>command+shift+w</code>开关非常爽，于是在想如何给其他软件配置快捷键。</p>
+<p>说到快捷键，很容易就想到 skhd；说到窗口，很容易就想到 Yabai。</p>
+<p>一开始使用 skhd 绑定 bash ，然后用 osascript 调用窗口，但是这样启动 Applescript 的 AppleEvent 的引擎非常慢(开关快一秒了)，远不如Dock.app的 command+Tab ，旧代码如下</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="va">APP_NAME</span><span class="op">=</span><span class="st">&quot;</span><span class="va">$*</span><span class="st">&quot;</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="va">ACTIVE_APP</span><span class="op">=</span><span class="va">$(</span><span class="ex">osascript</span> <span class="at">-e</span> <span class="st">&#39;tell application &quot;System Events&quot; to get name of first application process whose frontmost is true&#39;</span><span class="va">)</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="bu">[</span> <span class="st">&quot;</span><span class="va">$ACTIVE_APP</span><span class="st">&quot;</span> <span class="ot">==</span> <span class="st">&quot;</span><span class="va">$APP_NAME</span><span class="st">&quot;</span> <span class="bu">]</span><span class="kw">;</span> <span class="cf">then</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="ex">osascript</span> <span class="at">-e</span> <span class="st">&quot;tell application </span><span class="dt">\&quot;</span><span class="st">System Events</span><span class="dt">\&quot;</span><span class="st"> to set visible of application process </span><span class="dt">\&quot;</span><span class="va">$APP_NAME</span><span class="dt">\&quot;</span><span class="st"> to false&quot;</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="cf">else</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="ex">open</span> <span class="at">-a</span> <span class="st">&quot;</span><span class="va">$APP_NAME</span><span class="st">&quot;</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="cf">fi</span></span></code></pre></div>
+<p>现在通过Swift编译二进制文件管理窗口：</p>
+<p><code>swiftc -O ~/.config/skhd/toggle-app.swift -o ~/.config/skhd/toggle-app</code></p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode Swift"><code class="sourceCode swift"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="im">Cocoa</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="cf">guard</span> CommandLine<span class="op">.</span>arguments<span class="op">.</span>count <span class="op">&gt;</span> <span class="dv">1</span> <span class="cf">else</span> <span class="op">{</span> exit<span class="op">(</span><span class="dv">1</span><span class="op">)</span> <span class="op">}</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> <span class="va">targetAppName</span> <span class="op">=</span> CommandLine<span class="op">.</span>arguments<span class="op">[</span><span class="dv">1</span><span class="op">]</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> <span class="va">workspace</span> <span class="op">=</span> NSWorkspace<span class="op">.</span>shared</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="co">// 1. 获取当前最前台的 App</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="kw">let</span> <span class="va">frontApp</span> <span class="op">=</span> workspace<span class="op">.</span>frontmostApplication<span class="op">,</span> frontApp<span class="op">.</span>localizedName <span class="op">==</span> targetAppName <span class="op">{</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>    frontApp<span class="op">.</span>hide<span class="op">()</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="op">}</span> <span class="cf">else</span> <span class="op">{</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="kw">let</span> <span class="va">targetApp</span> <span class="op">=</span> workspace<span class="op">.</span>runningApplications<span class="op">.</span>first<span class="op">(</span><span class="kw">where</span><span class="op">:</span> <span class="op">{</span> $<span class="fl">0.</span>localizedName <span class="op">==</span> targetAppName <span class="op">})</span> <span class="op">{</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>        targetApp<span class="op">.</span>activate<span class="op">()</span></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span> <span class="cf">else</span> <span class="op">{</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>        <span class="kw">let</span> <span class="va">task</span> <span class="op">=</span> Process<span class="op">()</span></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>        task<span class="op">.</span>executableURL <span class="op">=</span> URL<span class="op">(</span>fileURLWithPath<span class="op">:</span> <span class="st">&quot;/usr/bin/open&quot;</span><span class="op">)</span></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>        task<span class="op">.</span>arguments <span class="op">=</span> <span class="op">[</span><span class="st">&quot;-a&quot;</span><span class="op">,</span> targetAppName<span class="op">]</span></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>        <span class="cf">try</span><span class="op">?</span> task<span class="op">.</span>run<span class="op">()</span></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>在skhd的配置 <code>~/.config/skhd/skhdrc</code> 中调用 ：</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode YAML"><code class="sourceCode yaml"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ctrl + shift - w </span><span class="kw">:</span><span class="at"> ~/.config/skhd/toggle-app WeChat</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="fu">ctrl + shift - c </span><span class="kw">:</span><span class="at"> ~/.config/skhd/toggle-app &quot;Google Chrome&quot;</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="fu">ctrl + shift - a </span><span class="kw">:</span><span class="at"> ~/.config/skhd/toggle-app &quot;Ghostty&quot;</span></span></code></pre></div>
+<p>然后启动服务<code>skhd --start-service</code>，新版不能通过<code>brew services start skhd</code>启动了。</p>
+  <p class="src">原文：Chr0mium24/Blog 仓库，迁移前 main（astro-legacy 分支）的 src/content/posts/macos-window-shortcuts.md</p>
+</main>
+<footer class="site"><a href="/">← 首页</a><span>某某</span><span></span></footer>
+</body>
+</html>

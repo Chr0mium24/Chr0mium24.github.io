@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>没有这一页 · 某某</title>
+<script>
+  // 旧博客（Astro 版）的地址搬家了：小工具原来在根目录，几篇文章原来用英文名。
+  (() => {
+    const p = location.pathname.replace(/\/+$/, '/');
+    const moved = {
+      '/posts/night-snack/': '/posts/yexiao/',
+      '/posts/wake/': '/posts/shuixingle/',
+      '/posts/ameri-visa/': '/posts/meiqian/',
+      '/posts/digital-circuit-game/': '/posts/logic/',
+      '/posts/double-var-int/': '/posts/jacobian/',
+      '/posts/group-tut/': '/posts/group/',
+      '/posts/lambda-calc/': '/posts/lambda/',
+      '/posts/lib-sys-analysis/': '/posts/library/',
+      '/posts/minecraft-high-tech-modpacks/': '/posts/modpacks/',
+      '/webpages/': '/#tools',
+      '/archive/': '/',
+    };
+    const to = moved[p] ?? moved[p + '/'] ?? (/^\/[^/]+\.html$/.test(p) && p !== '/404.html' ? '/tools' + p : null);
+    if (to) location.replace(to + location.hash);
+  })();
+</script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-screen-webfont/lxgwwenkaigbscreen.css">
+<link rel="stylesheet" href="/assets/site.css">
+</head>
+<body>
+<header class="site"><a class="name" href="/">某某</a><nav><a href="/#essays">随笔</a><a href="/#notes">笔记</a><a href="/#tools">小工具</a></nav></header>
+<main class="post">
+  <div class="kicker"><span>404</span></div>
+  <h1>没有这一页</h1>
+  <p class="dek">可能搬家了，也可能本来就没有。</p>
+  <p><a href="/">回首页</a>，所有东西都在那一页上。</p>
+</main>
+</body>
+</html>

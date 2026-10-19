@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Lambda初窥 · 某某</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-screen-webfont/lxgwwenkaigbscreen.css">
+<link rel="stylesheet" href="/assets/site.css">
+<script type="module" src="/assets/page.js"></script>
+<style>
+  .church { font-size: .9rem; min-height: 15rem; }
+  .church .expr { font: 13px/1.7 var(--mono); background: #efeadd; border-radius: 6px; padding: .5rem .8rem; margin-bottom: .9rem; overflow-x: auto; white-space: nowrap; }
+  .crow { display: grid; grid-template-columns: 7.5rem minmax(0, 1fr); gap: .8rem; align-items: center; padding: .28rem 0; border-bottom: 1px dashed var(--line); }
+  .crow .lab { color: var(--mute); font-size: .8rem; }
+  .crow .val { display: flex; flex-wrap: wrap; gap: .25rem; align-items: center; }
+  .crow i { color: var(--mute); font-style: normal; font-size: .8rem; }
+  .chip { display: inline-grid; place-items: center; width: 1.6rem; height: 1.6rem; border-radius: 5px; font: 600 12px var(--mono); }
+  .chip.a { background: color-mix(in srgb, var(--fig-ok) 16%, transparent); color: var(--fig-ok); }
+  .chip.b { background: color-mix(in srgb, var(--fig-ref) 16%, transparent); color: var(--fig-ref); }
+  .dots { display: flex; flex-wrap: wrap; gap: 2px; }
+  .chip.dot { width: .55rem; height: .55rem; font-size: 0; border-radius: 2px; }
+  .pair { font: 13px var(--mono); padding: .05rem .4rem; border-radius: 4px; background: #efeadd; }
+  .pair.last { background: color-mix(in srgb, var(--fig-ok) 16%, transparent); }
+  .m-row[hidden] { display: none; }
+  .key { display: inline-block; width: .9em; height: .9em; border-radius: 3px; vertical-align: -.1em; margin: 0 .2em; }
+</style>
+</head>
+<body>
+<header class="site"><a class="name" href="/">某某</a><nav><a href="/#essays">随笔</a><a href="/#notes" aria-current="page">笔记</a><a href="/#tools">小工具</a></nav></header>
+<main class="post">
+  <div class="kicker"><span>编程</span><span>2025-03-13</span></div>
+  <h1>Lambda初窥</h1>
+  <p class="dek">只用函数写数字：n 就是“把 f 用 n 次”。</p>
+  <p class="can"><span class="hand-dot"></span>能动的：换 <b>运算</b>　调 <b>m</b>、<b>n</b>　点代码里的 <b>定义</b>　点文中的 <b>试试</b></p>
+
+  <figure class="play wide" data-fig="./church.js">
+    <div class="fig-head"><span class="fig-no">图 1</span><span>Church 数：f 一共用了几次</span></div>
+    <div class="fig-body">
+      <div class="fig-main"><div class="church" aria-live="polite"></div></div>
+      <div class="fig-side">
+        <div class="ctl-label">运算</div>
+        <div class="seg">
+          <button value="SUC">SUC</button><button value="ADD">ADD</button><button value="MUL">MUL</button><button value="POW">POW</button><button value="PRED">PRED</button><button value="SUB">SUB</button>
+        </div>
+        <div class="ctl-label">参数（0–4）</div>
+        <div class="m-row" style="display:flex;align-items:center;gap:.8rem;margin:.2rem 0"><span style="width:1.2rem">m</span><span class="stepper" data-k="m"><button value="-1">−</button><output name="m"></output><button value="1">+</button></span></div>
+        <div style="display:flex;align-items:center;gap:.8rem;margin:.2rem 0"><span style="width:1.2rem">n</span><span class="stepper" data-k="n"><button value="-1">−</button><output name="n"></output><button value="1">+</button></span></div>
+        <p class="readout"></p>
+      </div>
+    </div>
+    <figcaption><span class="key" style="background:color-mix(in srgb,var(--fig-ok) 30%,transparent)"></span>和<span class="key" style="background:color-mix(in srgb,var(--fig-ref) 30%,transparent)"></span>只是为了分清“哪几次 f 来自哪个数”。结果都是代码真的跑出来的：右边那行 <code>to_int(…)</code> 就是原文里的 <code>to_int</code>。</figcaption>
+  </figure>
+
+  <h2><span class="n">1</span>原文</h2>
+  <p>点任意一行定义，图就切到那个运算。</p>
+  <pre class="codebox"><span class="ln" data-op="ZERO">ZERO = lambda f:lambda x:x</span><span class="ln click" data-op="SUC">SUC = lambda church:lambda f:lambda x:church(f)(f(x))</span><span class="ln"> </span><span class="ln">to_int = lambda n:n(lambda x:x+1)(0)</span><span class="ln">to_church = lambda n:ZERO if n==0 else SUC(to_church(n-1))</span><span class="ln"> </span><span class="ln">ONE = to_church(1)</span><span class="ln">TWO = to_church(2)</span><span class="ln">THREE = to_church(3)</span><span class="ln"> </span><span class="ln click" data-op="ADD">ADD = lambda m:lambda n:lambda f:lambda x:m(f)(n(f)(x))</span><span class="ln">ADD_1 = lambda m:lambda n:m(SUC)(n)</span><span class="ln click" data-op="MUL">MUL = lambda m:lambda n:lambda f:lambda x:m(lambda x1:n(f)(x1))(x)</span><span class="ln click" data-op="POW">POW = lambda m:lambda n:n(MUL(m))(ONE) #POW(m)(n) = m^n</span><span class="ln"> </span><span class="ln">PAIR = lambda x:lambda y:lambda f:f(x)(y)</span><span class="ln">FST = lambda p: p(lambda x: lambda y: x)</span><span class="ln">LST = lambda p: p(lambda x: lambda y: y)</span><span class="ln">PHI = lambda p: PAIR(LST(p))(SUC(LST(p)))</span><span class="ln click" data-op="PRED">PRED = lambda n:FST(n(PHI)(PAIR(ZERO)(ZERO)))</span><span class="ln click" data-op="SUB">SUB = lambda m: lambda n: n(PRED)(m)</span><span class="ln"> </span><span class="ln">IS_ZERO = lambda n:n(lambda x:FALSE)(TRUE)</span><span class="ln">LTE = lambda m:lambda n:IS_ZERO(SUB(m)(n))</span><span class="ln">GT = lambda m:lambda n:NOT(LTE(m)(n))</span><span class="ln">EQ = lambda m:lambda n:AND(LTE(m)(n))(LTE(n)(m))</span><span class="ln"> </span><span class="ln">I = lambda x:x</span><span class="ln">W = lambda f:lambda x:f(x)(x)</span></pre>
+
+  <h2><span class="n">2</span>数字 = 用几次</h2>
+  <p><code>ZERO</code> 一次 f 都不用，直接把 x 还回去；<code>SUC</code> 先按原来的次数用 f，再多用一次。所以 <code>THREE</code> 展开就是 <code>f(f(f(x)))</code>，<code>to_int</code> 只是拿“加一”当 f、拿 0 当 x，数一数用了几次。<button class="try" data-set='{"op":"SUC","n":3}'>试试</button></p>
+
+  <h2><span class="n">3</span>加法是接着用，乘法是一份一份用</h2>
+  <p><code>ADD</code> 先让 n 用 n 次 f，再把结果交给 m 接着用 m 次。<button class="try" data-set='{"op":"ADD","m":3,"n":2}'>试试 3 + 2</button></p>
+  <p><code>MUL</code> 把“用 n 次 f”整个当成一个新的 f，再让 m 用它 m 次。<button class="try" data-set='{"op":"MUL","m":3,"n":2}'>试试 3 × 2</button><code>POW</code> 则是从 <code>ONE</code> 出发，连乘 n 次 m。<button class="try" data-set='{"op":"POW","m":2,"n":3}'>试试 2³</button></p>
+
+  <h2><span class="n">4</span>最难的是减一</h2>
+  <p>Church 数只会“往前用”，没法撤回一次 f。<code>PRED</code> 的办法是拿一对数 (前一个, 当前) 从 (0, 0) 出发，每步变成 (当前, 当前+1)，走 n 步以后取前一个，就是 n−1。<button class="try" data-set='{"op":"PRED","n":4}'>试试 PRED(4)</button><code>SUB</code> 再把 PRED 用 n 次；减过头会停在 0。<button class="try" data-set='{"op":"SUB","m":2,"n":4}'>试试 2 − 4</button></p>
+
+  <p>参考资料：<a href="https://zh.wikipedia.org/wiki/%CE%9B%E6%BC%94%E7%AE%97">wiki</a> · <a href="https://matt.might.net/articles/python-church-y-combinator/">Y combinator</a></p>
+  <p class="src">原文：个人博客备份/Lambda初窥.md（只有代码和链接）。代码去掉了重复的一段，FOUR 以后的常量没放；图和第 2–4 节的说明是后加的。</p>
+</main>
+<footer class="site"><a href="/posts/library/">← 某图书管理系统的分析</a><span>某某</span><a href="/">首页 →</a></footer>
+</body>
+</html>

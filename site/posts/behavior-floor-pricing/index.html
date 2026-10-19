@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>下限是被定价出来的 · 某某</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-screen-webfont/lxgwwenkaigbscreen.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="/assets/site.css">
+<script type="module" src="/assets/page.js"></script>
+</head>
+<body>
+<header class="site"><a class="name" href="/">某某</a><nav><a href="/#essays">随笔</a><a href="/#notes" aria-current="page">笔记</a><a href="/#tools">小工具</a></nav></header>
+<main class="post">
+  <div class="kicker"><span>知识</span><span>2026-09-08</span> <span class="ai">AI 生成</span></div>
+  <h1>下限是被定价出来的</h1>
+  <p class="dek">从敌敌畏消杀到首个杰青撤销——用 ΔC、p×F 框架读 2026 年的 50 起核实事件，以及四个可以拿数据检验的问题</p>
+<h2 id="三个案例同一个问题">三个案例，同一个问题</h2>
+<p>2026 年 5 月，福建漳州。暗访记者问收购点的工人：泡过药的杨梅你们自己吃吗？答案是被无数人引用过的那句——"泡药的，我们自己都不敢吃。"同一场暗访里，收购点老板面对镜头理直气壮："<strong>别家都这样！为什么就曝光我？</strong>"他们备好没泡药的"阴阳货"应付抽检，泡过脱氢乙酸钠的杨梅发往浙江、上海，单家收购点旺季日销五千斤。事后追责：刑拘 5 人、行政立案 12 起、23 名干部问责。</p>
+<p>2026 年 8 月，国家自然科学基金委员会公布年度第二批科研不端案件通报：<strong>国内首个国家杰青项目被正式撤销</strong>（中山大学，约 400 万元资助）。举报者不是任何制度内监督机构，而是一位科普博主。</p>
+<p>2026 年 4 月，市场监管总局对拼多多、美团、京东、饿了么、抖音等七个平台开出<strong>全年最大罚单：合计罚没 35.97 亿元</strong>——纵容 67,604 家"幽灵外卖店"（伪造许可证 + 订单转单）。这笔罚单同时拆解了一个微观结构：一份 252 元的蛋糕订单，实际制作者得到 77 元，转单者分走 122 元。</p>
+<p>这三个场景共享同一个细节：当事人<strong>清楚地知道产品有害</strong>——工人那句“泡药的我们自己都不敢吃”就是证据。知道有害，仍然照做，说明真正约束行为的不是“知不知道这是坏事”。那是什么？</p>
+<blockquote>
+<p>是价格。<strong>行为下限由三个变量决定：违规的成本节省 ΔC、检出概率 p、惩罚 F——下限落在 pF 追不上 ΔC 的地方。</strong></p>
+</blockquote>
+<p>这个设定来自 Becker（1968）的犯罪经济学。下文先把它写成公式，再用 2023–2026 年间逐条核实的 50 起事件校准它，最后留下四个可以拿数据检验的问题。</p>
+<p><img src="behavior-floor-pricing.png" alt="2026 年下限事件全景表：实线卡为官方确认的 43 条，虚线卡为民间曝光未确认的 7 条；相邻的少量月份并入同列，底部为民间量化带" /></p>
+<hr />
+<h2 id="下限的定价公式">下限的定价公式</h2>
+<h3 id="违规的期望收益">违规的期望收益</h3>
+<p>考虑一个经营者，可以选择把质量从合规水平 <span class="math inline">\(\bar{q}\)</span> 降到 <span class="math inline">\(q &lt; \bar{q}\)</span>（掺违禁添加剂、省掉一道消杀工序、删掉一组测试）。质量降级带来的成本节省记为 <span class="math inline">\(S(\Delta q)\)</span>，其中 <span class="math inline">\(\Delta q = \bar{q} - q\)</span>，<span class="math inline">\(S&#39; &gt; 0\)</span>——降得越狠省得越多。降级行为被查处的概率为 <span class="math inline">\(p\)</span>，查实后的惩罚折算为货币等价 <span class="math inline">\(F\)</span>。经营者的期望违规净收益：</p>
+<p><span class="math display">\[ G(q, k) = \underbrace{S(\Delta q)}_{\text{成本节省}} - \underbrace{p(k)\cdot F}_{\text{期望惩罚}} - \underbrace{k}_{\text{隐匿投资}} \]</span></p>
+<p>违规条件只有一个：<span class="math inline">\(G &gt; 0\)</span>。<strong>行为下限</strong> <span class="math inline">\(q^*\)</span> 定义为让这个式子恰好归零的最低质量水平：</p>
+<p><span class="math display">\[ S(\Delta q^*) = p\cdot F \]</span></p>
+<p>这是一个定价等式：<strong>下限就是市场给"作恶风险"开的价。</strong> 道德不在这个式子里。道德可以改变一个人对特定交易的参与意愿，但改变不了均衡价格——因为市场上总有别的供给者。</p>
+<h3 id="隐匿投入会压低被查概率">隐匿投入会压低被查概率</h3>
+<p>上面有个伏笔：<span class="math inline">\(p(k)\)</span> 写成了隐匿投资 <span class="math inline">\(k\)</span> 的函数。降低检出概率不是免费的——撕掉敌敌畏的标签灌进矿泉水瓶、给杨梅备"阴阳货"、给年检线装 OBD 干扰仪、养一批"无抗样品蛙"专供迎检、在试验机监控拍着的情况下直接编检测数据——<strong>每一条都是花真金白银买的 <span class="math inline">\(p\)</span> 值折减</strong>。设隐匿技术为指数形式 <span class="math inline">\(p(k) = p_0 e^{-\lambda k}\)</span>，经营者对 <span class="math inline">\(k\)</span> 求最大化，一阶条件：</p>
+<p><span class="math display">\[ -\frac{\partial p}{\partial k} F = 1 \;\Longrightarrow\; \lambda\, p(k^*)\, F = 1 \;\Longrightarrow\; p^* = \frac{1}{\lambda F} \]</span></p>
+<p>这个内点解有三层含义，每一层都能在案例里找到对应：</p>
+<ol type="1">
+<li><strong>隐匿投资会把检出概率精确压到与惩罚成反比为止</strong>。<span class="math inline">\(F\)</span> 定得越重，捂的技术就越精细——不是 paradox，是优化结果。</li>
+<li><strong>对策随监管协同进化</strong>。<span class="math inline">\(\lambda\)</span> 是"对策技术参数"：新京报暗访升级 → 消杀公司学会了监管介入后表面换合规药、实际继续用敌敌畏；杨梅商贩学会"打游击"；检测造假升级到"无车年检"和仿真数据补账面里程。监管每一次提高 <span class="math inline">\(p\)</span>，都自动提高下一轮的 <span class="math inline">\(\lambda\)</span>。</li>
+<li><strong>观察到的"荒诞行为"是均衡的一阶条件</strong>，不是当事人的愚蠢。撕标签这个动作，和实验室里求解 <span class="math inline">\(p^* = 1/(\lambda F)\)</span>，是同一件事。</li>
+</ol>
+<h3 id="道德不是约束变量">道德不是约束变量</h3>
+<p>对 <span class="math inline">\(q^*\)</span> 做比较静态：<span class="math inline">\(\partial q^*/\partial(pF) &gt; 0\)</span>——期望惩罚越高，下限越高；<span class="math inline">\(pF\)</span> 不动，下限不动。<strong>这意味着"道德滑坡论"和"道德完好论"对行为的预测力相同，都为零。</strong> 它们讨论的变量根本不在方程里。</p>
+<p>这也解释了那个著名的困惑：为什么从业者一边说"我自己都不敢吃"。这句话只证明他们掌握<strong>对自己有害</strong>的信息（自我保护知识），不构成道德判断——知道有毒和认为不该卖给别人，中间隔着"别人"这个维度。社会学早就给这个缺口起了名字：<strong>中和技巧</strong>（Sykes &amp; Matza 1957）——"大家都这样""不干就出局""凭什么曝光我"，五句话就把行为从道德评价里摘了出去。杨梅案里那句"别家都这样！为什么就曝光我？"是教科书级的中和话术，而且是新华社通报记录的原文。</p>
+<hr />
+<h2 id="为什么劣币驱逐良币">为什么劣币驱逐良币</h2>
+<p>单企业的定价公式还不完整——它解释不了"为什么所有人都在做"。需要加两块拼图。</p>
+<h3 id="消费者验证不了质量">消费者验证不了质量</h3>
+<p>食品、消杀服务、检测报告有一个共同的属性：<strong>消费者即使在消费之后也无法验证质量</strong>（经济学里叫“信任品”，Darby &amp; Karni 1973）。你吃不出杨梅里有没有脱氢乙酸钠,尝不出外卖后厨有没有转单,看不懂检测报告是真是假。信任品加上信息不对称,就是 Akerlof 1970 年柠檬市场的原始设定:买方只愿意按平均质量出价,<strong>质量本身无法获得价格回报</strong>。</p>
+<p>质量拿不到溢价，价格就成了唯一的竞争维度。于是：</p>
+<h3 id="合规者被挤出市场">合规者被挤出市场</h3>
+<p>设合规成本 <span class="math inline">\(c_h\)</span>，违规成本 <span class="math inline">\(c_l &lt; c_h\)</span>，成本节省 <span class="math inline">\(S = c_h - c_l\)</span> 正是前面的 <span class="math inline">\(S(\Delta q)\)</span>。违规者面对期望惩罚成本 <span class="math inline">\(pF\)</span>。质量不可观察，价格战下：</p>
+<p><span class="math display">\[ \text{合规者存活条件：}\quad c_h \le c_l + pF \;\Longleftrightarrow\; pF \ge S \]</span></p>
+<p>把不等式反过来看：<strong>只要 <span class="math inline">\(pF &lt; S\)</span>，合规企业注定亏损离场</strong>。敌敌畏几块钱一瓶、合规消杀药剂 25 元一瓶，同规格餐厅报价差 8 倍——这就是 <span class="math inline">\(S\)</span> 的报价单。槽头肉 3 元/斤替代 12 元五花肉，<span class="math inline">\(S = 9\)</span> 元/斤。<strong>"不做的会被淘汰"在这里变成了一个严格不等式</strong>：三聚氰胺时代的奶农面对按蛋白含量计价的收购体系，不掺就是亏损，掺假不是堕落，是存活条件。</p>
+<p>还有一层更狠的：在这个均衡里<strong>合规本身就是税</strong>。2026 年杨梅案后多省对福建杨梅"一刀切"禁入,没泡药的果农承担了泡药商贩的代价--违规者把成本外部化给了全行业。这是 Gresham 定律在合规市场的版本:劣币驱逐良币,前提只有一个--<span class="math inline">\(pF\)</span> 太低。</p>
+<hr />
+<h2 id="被查的概率比罚多重更重要">被查的概率，比罚多重更重要</h2>
+<p>直觉会说：罚重一点、判死几个，就没人敢了。三聚氰胺之后确实枪毙了人，<span class="math inline">\(F\)</span> 高到顶。但 2009 年之后的掺假并没有停，直到"批批检"成为常规动作才真正消失。模型对这个现象的解释只有一行：</p>
+<p>有效威慑是期望值 <span class="math inline">\(D = p \cdot \min(F, W)\)</span>，其中 <span class="math inline">\(W\)</span> 是潜在违法者的财富约束。<strong>罚款超过支付能力后，<span class="math inline">\(F\)</span> 的边际威慑归零</strong>——剩下的唯一杠杆是 <span class="math inline">\(p\)</span>。</p>
+<p>这不是中国特例,是执法经济学四十年反复验证的结论。Polinsky &amp; Shavell (1979) 证明:风险中性时最优执法是"罚款拉满、检出概率压到最低",只有罚款撞上财富约束时才被迫提高检出概率;Nagin (2013) 综述五十年实证证据,结论一致：<strong>“查得到的概率”比“罚得多重”更能阻止作恶，加重惩罚的额外威慑“微弱到可以忽略”</strong>。</p>
+<p>三聚氰胺是这个理论的完美自然实验：同一批人、同一套道德，<span class="math inline">\(F\)</span> 没变（甚至更重了），只有 <span class="math inline">\(p\)</span> 从 ≈0 跳到常态化的批批检——行为就消失了。反例是甲醛白菜：2012 年山东青州、2015 年河北山东、2026 年 8 月河北康保再现实锤——<strong>十四年，同一个行为，换地方重现</strong>。这个生态位里的 <span class="math inline">\(p\)</span> 十四年没动过。</p>
+<hr />
+<h2 id="专项整治过后查处会回落">专项整治过后，查处会回落</h2>
+<p>中国的执法不是平稳流，是脉冲：平时 <span class="math inline">\(p\)</span> 很低，专项整治期间冲高，之后衰减。写成函数：</p>
+<p><span class="math display">\[ p(t) = \bar{p} + (p_c - \bar{p})\, e^{-\lambda (t - t_0)} \]</span></p>
+<p><span class="math inline">\(t_0\)</span> 是专项行动启动日，<span class="math inline">\(p_c\)</span> 是运动峰值，<span class="math inline">\(\bar{p}\)</span> 是平时基线，<span class="math inline">\(\lambda\)</span> 是衰减速度。周雪光（2012）把这种机制称为<strong>运动型治理</strong>：常规官僚机制失灵时的（暂时）替代机制，其特征恰恰是"叫停成本高、退出也快"。</p>
+<p>这个函数有两个直接推论：</p>
+<p><strong>推论一：理性违规者的最优策略是时间迁移。</strong> 长期违规收益取决于 <span class="math inline">\(\int p(t)\,dt\)</span> 而不是峰值 <span class="math inline">\(p_c\)</span>。从业者经历过每一轮整治都退潮，所以"行业默许"不是麻木，是对 <span class="math inline">\(\lambda\)</span> 的理性预期。龙海干部对记者承认："今年加大了抽查力度，但仍有商贩钻空子、打游击。"——打游击就是跨期套利。</p>
+<p><strong>推论二：观测到的惩罚记录会在运动窗口内聚集</strong>，事后回落。这不是猜想，是中国环境执法的实证结论：Lin, Chu &amp; Sun（2023）用双重差分评估中央环保督察，发现督察显著改善空气质量、但<strong>短期显著抑制经济增长</strong>——高压真实存在，成本真实存在，持续性存疑。这正是 <span class="math inline">\(\lambda &gt; 0\)</span> 的宏观代价。</p>
+<p>2026 年提供了一个完美的进行时样本：漳州从 5 月 15 日起派出干部驻点 45 天专项整治；新京报的评论标题自己都在提醒——"整治需避免沦为舆情治理，搞成'一阵风'"。<span class="math inline">\(\lambda\)</span> 到底多大，是文末研究计划里要估计的第一个参数。</p>
+<hr />
+<h2 id="惩罚落在谁头上">惩罚落在谁头上</h2>
+<p>到这里还差最后一块：<span class="math inline">\(F\)</span> 落在谁头上。</p>
+<p>油罐车混装食用油案（2024）给出了教科书式的分层：七家企业罚没合计约 1,104 万元（行政化），<strong>两名司机刑事立案、三人行政拘留</strong>（刑事化）。星宇股份应届生"二选一"事件里，被约谈的学生在 8 月底拿到致歉和补偿——但起作用的杠杆不是劳动仲裁，而是他们把材料递到了<strong>港交所和奔驰、大众的欧洲客户</strong>手里。为什么要绕开正式渠道？因为数据早就告诉你正式渠道的定价：一审劳动者胜诉率 26.08%、四成劳动者诉讼中无代理。</p>
+<p>把外包链条形式化：委托—分包—派遣的每一层合同，都在把惩罚的份额 <span class="math inline">\(\alpha_i\)</span> 沿链条向下转移，<span class="math inline">\(\sum \alpha_i = 1\)</span>，而 <span class="math inline">\(\alpha\)</span> 的分配由各层的议价能力决定。<strong>出事时 <span class="math inline">\(E[F_i] = \alpha_i F\)</span>，议价能力最低的人拿到最大的 <span class="math inline">\(\alpha\)</span>。</strong> 消杀公司出事，刑拘的是公司员工和法定代表人；深圳要到 2026 年才第一次立法禁止政府专职消防员劳务派遣——而在此之前，"编内编外同样进火场、待遇差一倍"是常态。</p>
+<p>这也顺手解释了一个反直觉的观察：<strong>罚没金额动辄千万，为什么行为不改？</strong> 因为对组织而言 <span class="math inline">\(F\)</span> 是可预算的经营成本（1104 万、1287 万、35.97 亿都付得起），对个人而言刑责才致命——而刑责恰恰沿着链条滑向了 <span class="math inline">\(\alpha\)</span> 最大的那群人。威慑不是不存在，是<strong>打在了不决策的位置上</strong>。</p>
+<hr />
+<h2 id="这些案子是被谁发现的">这些案子是被谁发现的</h2>
+<p>上面所有公式里，<span class="math inline">\(p\)</span> 是最神秘的变量。2023–2026 年 45 条（另有 7 条民间未确认）经核实的事件给出了它的供给侧画像，各渠道的分工相当一致：</p>
+<p><strong>检测器是媒体和博主，不是监管。</strong> 鼠头鸭脖（学生视频）、油罐车/黄焖鸡/敌敌畏（新京报暗访×3）、杨梅（暗访）、甲醛白菜（博主曝光）、华中农大（11 名学生联名 125 页）、杰青撤销（科普博主实名举报）、幽灵外卖（媒体调查）——几乎每一件都是制度外力量打开的。常规抽检在名单里几乎缺席；偶尔出现还是反向的：鼠头鸭脖初判"鸭脖"、冻干草莓镉超标"无标准不立案"、贵州罗甸灭蚊剂喷蔬菜"首违不罚"。</p>
+<p>更深的裂缝在检测基础设施本身：<strong>中国建筑标准设计研究院——给市政工程出检测报告的央企子公司——在试验机监控显示"当日未做试验"的情况下出具了报告</strong>；重庆一家环境检测公司三年开出 167 份虚假监测报告；机动车检测线"无车年检"。当 <span class="math inline">\(p\)</span> 的测量仪自己被腐蚀，<span class="math inline">\(p\)</span> 就不是低，是<strong>系统性失真</strong>。生态环境部专项整治累计查处第三方监测造假 2,400 余起、310 余起追究刑责——这个产业规模本身就说明，"压低 p"已经是一个有产能、有定价的行业。</p>
+<p>民间层的量化画像（2026）：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>民间检测渠道</th>
+<th>体量</th>
+<th>趋势</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>网信办举报受理</td>
+<td>1–7 月累计 ≈1.10 亿件（1 月峰值 2214.6 万，同比 +30.9%）</td>
+<td>2–7 月同比转负</td>
+</tr>
+<tr>
+<td>黑猫投诉</td>
+<td>2025 年 891 万件（外卖餐饮 67 万+）</td>
+<td>平台回复率分化：淘天仅 4.43%</td>
+</tr>
+<tr>
+<td>车质网</td>
+<td>1–8 月近 18 万宗，Q2 同比 <strong>+83.4%</strong></td>
+<td>"城市 NOA 不兑现"集体投诉环比 ×3.3</td>
+</tr>
+<tr>
+<td>中消协</td>
+<td>2025 年受理 201.6 万件</td>
+<td><strong>解决率 68.75% → 52.8%，↓16 个百分点</strong></td>
+</tr>
+<tr>
+<td>劳工集体行动</td>
+<td>CLB：2023 年 1,794 起、2024 年 1,509 起</td>
+<td><strong>CLB 已于 2025-06-12 解散停更</strong>；后继记录全部在境外（CDM：2025 年劳工类 +58%）</td>
+</tr>
+</tbody>
+</table></div>
+<p>消费端的检测在繁荣（车质网 +83.4%），解决率在崩（-16 个百分点）——<strong>p 在升、F 在降</strong>。而劳动端的民间检测器已经物理性消失：中国劳工通讯 2025 年 6 月 12 日宣布解散,同日香港警方查处"六人和一个组织"。此后,工人集体行动的记录只存在于境外数据库(Freedom House CDM:2025 年 5,343 起,+44%,劳工类 +58%)和 Telegram 频道里。</p>
+<p><strong>王海的双结局</strong>是检测生态最精妙的显微切片。同一个打假人、同样的送检方法：优思益"伪进口"（小目标）——民间实测→央视接力→三部门立案、全网下架，<span class="math inline">\(p \to F\)</span> 闭环成功；黄天鹅"角黄素"（头部供应商 + 胖东来顶流渠道）——市监局承诺 15 个工作日反馈，<strong>到 9 月仍然没有公开结论</strong>。同一个 <span class="math inline">\(p\)</span>，两种 <span class="math inline">\(F\)</span>。唯一系统性的差别是被检测对象的议价能力。<strong>F 的落地速度，与目标的市场权力成反比</strong>——这个命题值得单独写一篇论文，而且它已经有一个现成的对照实验在跑了。</p>
+<hr />
+<h2 id="从一亿件举报到-43-条确认">从一亿件举报到 43 条确认</h2>
+<p>把上面所有层叠起来，2026 年从举报到刑责的逐级收窄长这样：</p>
+<p><span class="math display">\[ \underbrace{\sim 1.1\text{亿件}}_{\substack{\text{民间举报} \\ \text{网信办 1–7 月}}} \longrightarrow \underbrace{10^6\text{–}10^7}_{\substack{\text{平台投诉} \\ \text{黑猫 891 万/年}}} \longrightarrow \underbrace{10^2\text{ 级}}_{\substack{\text{热点化} \\ \text{媒体暗访/博主}}} \longrightarrow \underbrace{43\text{ 条}}_{\text{官方确认}} \longrightarrow \underbrace{10^1\text{ 级}}_{\text{刑责}} \]</span></p>
+<p>这张逐级收窄的图同时是一份方法论警告：<strong>我手里的时间线只收录了官方确认的事件，这个准入门槛本身就是 F 的开关</strong>。进图的条目 = p 触发后 F 跟上了;留在民间的(黄天鹅悬案、西安比亚迪工厂罢工、美克美家千人讨薪--社媒→财经媒体跟进,官方处置无下文)= p 触发、F 缺席。所以:</p>
+<blockquote>
+<p><strong>用“热点事件越来越密集”论证“环境越来越恶化”，是把“曝光量”的波动当成了“发生量”的趋势。</strong> 检测强度、媒体周期、平台算法都会放大计数。时间线能证明的是<strong>跨领域结构重现</strong>--食品、学术、财务、建筑检测、环保监测、劳动用工、地方财政七个互不相通的领域呈现同一个 <span class="math inline">\(\Delta C \to\)</span> 捂 <span class="math inline">\(p \to F\)</span> 底层化的结构--但"趋势是否恶化"必须用比值类指标(解决率、胜诉率、响应时滞、确认率)做纵向检验,而不是数新闻条数。这既是本文的立场,也是它给自己划的边界。</p>
+</blockquote>
+<hr />
+<h2 id="可检验命题与研究计划">可检验命题与研究计划</h2>
+<p>框架要活下来，就得给出能被数据证伪的命题。以下四条已经立项（数据源与里程碑见项目仓库）：</p>
+<p><strong>RQ1（下限定价）</strong>：行业级 <span class="math inline">\(S\)</span>（合规-违规成本差）与处罚密度的横截面关系。若框架正确，<span class="math inline">\(\Delta C\)</span> 大的行业（食品加工、检测认证、外卖）违法记录密度应系统性高于 <span class="math inline">\(\Delta C\)</span> 小的行业，控制执法资源后依然成立。</p>
+<p><strong>RQ2（查处力度的回落速度）</strong>：把每次专项整治的启动当作一次实验，比较启动前后处罚记录密度的变化，估计回落速度 <span class="math inline">\(\lambda\)</span>。数据：市监总局季度典型案例批次、信用中国行政处罚记录、基金委通报批次（2023–2026 已人工建库）。监管自己发布的颗粒度，已经够拼出一张逐年逐行业的统计表。</p>
+<p><strong>RQ3（惩罚落在谁头上）</strong>：按处罚对象分类（企业 / 法定代表人 / 操作工 / 司机 / 派遣工）统计刑罚与行政罚款的分布。假设：越靠近链条底端，吃刑事处罚的概率越高。油罐车案（企业 1104 万行政化 vs 司机刑事化）是第一个观察点；接下来用全样本检验它是不是普遍规律。</p>
+<p><strong>RQ4（案子是被谁发现的）</strong>：每条已处罚案件标注发现渠道（日常抽检/投诉/媒体/专项行动），估计各渠道份额的时间趋势。从时间线看：媒体+博主主导，且“官方确认”闸门在收紧（中消协解决率 -16pp 是它在消费端的投影）。</p>
+<hr />
+<h2 id="局限性">局限性</h2>
+<p>诚实的边界清单，和正文一样重要：</p>
+<ol type="1">
+<li><strong>它不证明"道德没滑坡"，只证明道德不是必要变量。</strong> 要单独检验道德变迁，需要实验证据（跨时诚实实验、失物钱包范式），观察数据做不到。</li>
+<li><strong>它不识别趋势。</strong> 45 条事件的密度受检测强度、媒体周期、本文检索强度的三重放大。纵向比较需要比值指标和固定样本，M2–M4 就是为了这个。</li>
+<li><strong>网信办举报量同比转负是歧义信号</strong>：可能说明违法量下降，也可能是举报意愿、触达成本或平台分流变了。数据本身无法区分。</li>
+<li><strong>撤稿数字回落（10,579 → 1,701）有事后补录上浮的技术性陷阱</strong>，在 Retraction Watch 数据库的更新节奏下，近三年数字几乎必然上修，不宜当改善证据。</li>
+<li><strong>“官方确认”这道闸门本身会自己变动</strong>。本文把进入时间线等同于 F 落地，但确认速度还取决于舆情规模、地方财政激励、涉事企业的政治关联（文献地图里的 Fang/Li/Wu 2025 和王裕华 2016 恰好构成这一层的正反证据）。</li>
+<li><strong>单个案例永远不能证明因果</strong>。时间线的作用是划出“该去哪里看”，不是给结论。</li>
+</ol>
+<hr />
+<h2 id="参考文献">参考文献</h2>
+<p><strong>理论框架</strong></p>
+<ol type="1">
+<li>Becker, G. S. (1968). Crime and Punishment: An Economic Approach. <em>Journal of Political Economy</em>, 76(2), 169–217. DOI: 10.1086/259394</li>
+<li>Stigler, G. J. (1970). The Optimum Enforcement of Laws. <em>Journal of Political Economy</em>, 78(3), 526–536. DOI: 10.1086/259646</li>
+<li>Polinsky, A. M., &amp; Shavell, S. (1979). The Optimal Tradeoff between the Probability and Magnitude of Fines. <em>American Economic Review</em>, 69(5), 880–891.</li>
+<li>Polinsky, A. M., &amp; Shavell, S. (2000). The Economic Theory of Public Enforcement of Law. <em>Journal of Economic Literature</em>, 38(1), 45–76. DOI: 10.1257/jel.38.1.45</li>
+<li>Shavell, S. (1991). Specific versus General Enforcement of Law. <em>Journal of Political Economy</em>, 99(5), 1088–1108.</li>
+<li>Nagin, D. S. (2013). Deterrence in the Twenty-First Century. <em>Crime and Justice</em>, 42(1), 199–263. DOI: 10.1086/670398</li>
+<li>Graetz, M. J., Reinganum, J. F., &amp; Wilde, L. L. (1986). The Tax Compliance Game: Toward an Interactive Theory of Law Enforcement. <em>Journal of Law, Economics, &amp; Organization</em>, 2(1), 1–32.</li>
+</ol>
+<p><strong>信息不对称与质量</strong></p>
+<ol start="8" type="1">
+<li>Akerlof, G. A. (1970). The Market for "Lemons": Quality Uncertainty and the Market Mechanism. <em>Quarterly Journal of Economics</em>, 84(3), 488–500. DOI: 10.2307/1879431</li>
+<li>Darby, M. R., &amp; Karni, E. (1973). Free Competition and the Optimal Amount of Fraud. <em>Journal of Law and Economics</em>, 16(1), 67–88. DOI: 10.1086/466756</li>
+</ol>
+<p><strong>社会学机制</strong></p>
+<ol start="10" type="1">
+<li>Sykes, G. M., &amp; Matza, D. (1957). Techniques of Neutralization: A Theory of Delinquency. <em>American Sociological Review</em>, 22(6), 664–670. JSTOR: 2089195</li>
+</ol>
+<p><strong>中国治理</strong></p>
+<ol start="11" type="1">
+<li>周雪光（2012）。〈运动型治理机制：中国国家治理的制度逻辑再思考〉，《开放时代》，2012 年第 9 期，100–120 页。</li>
+<li>Lin, B., Chu, S., &amp; Sun, W. (2023). Central environmental protection inspection, environmental quality, and economic growth: Evidence from China. <em>Applied Economics</em>, 55(50), 5956–5974. DOI: 10.1080/00036846.2022.2140776</li>
+<li>Lin, J., Long, C., &amp; Yi, C. (2021). Has central environmental protection inspection improved air quality? Evidence from 291 Chinese cities. <em>Environmental Impact Assessment Review</em>, 90, 106621.</li>
+</ol>
+<p><strong>本文案例证据的中国实证文献</strong>（全部经核真，详见知识库《中国治理实证文献地图》）</p>
+<ol start="14" type="1">
+<li>Jia, Chen &amp; Yang (2025). Bond default of super-large real estate company and government debt risk. <em>International Review of Financial Analysis</em>, 103. —— Chen et al. (2023). <em>Land</em>, 12(8): 1597. —— Wang, Yu &amp; Rao (2026). <em>Public Finance Review</em>, 54(3). —— Chen, He &amp; Liu (2020). <em>JFE</em>, 137(1): 42–71.（房地产→地方财政线）</li>
+<li>Yasuda (2015). Why Food Safety Fails in China. <em>The China Quarterly</em>, 223, 745–769. —— Lorentzen, Landry &amp; Yasuda (2014). <em>Journal of Politics</em>, 76(1).（食品安全线）</li>
+<li>Lin, L. (2022). Power resources and workplace collective bargaining: Evidence from China. <em>Journal of Chinese Sociology</em>, 9(19). —— Halegua (2016). <em>Who Will Represent China's Workers?</em> NYU.（劳动线）</li>
+<li>王裕华 (2016). Beyond Local Protectionism. <em>The China Quarterly</em>, 226. —— Li &amp; Wang (2024). <em>China Economic Review</em>, 88. —— Kong, Tao &amp; Wang (2020). <em>China Economic Review</em>, 63. —— Fang, Li &amp; Wu (2025). <em>Journal of Public Economics</em>, 248. —— Long &amp; Wang (2015). <em>International Review of Law and Economics</em>, 42. —— Liu, Lu, Peng &amp; Wang. NBER WP 30432.（政商与司法线）</li>
+</ol>
+<p><strong>数据附件</strong></p>
+<p>案例时间线、文献核真清单与研究计划存于个人项目仓库，暂未公开；本文每一处数字都可在文内链接的官方通报或媒体报道中逐一复核。</p>
+  <p class="src">原文：Chr0mium24/Blog 仓库，迁移前 main（astro-legacy 分支）的 src/content/posts/behavior-floor-pricing.md</p>
+</main>
+<footer class="site"><a href="/">← 首页</a><span>某某</span><span></span></footer>
+</body>
+</html>

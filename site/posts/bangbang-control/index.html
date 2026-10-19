@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>滑模控制 · 某某</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-screen-webfont/lxgwwenkaigbscreen.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="/assets/site.css">
+<script type="module" src="/assets/page.js"></script>
+</head>
+<body>
+<header class="site"><a class="name" href="/">某某</a><nav><a href="/#essays">随笔</a><a href="/#notes" aria-current="page">笔记</a><a href="/#tools">小工具</a></nav></header>
+<main class="post">
+  <div class="kicker"><span>知识</span><span>2026-04-14</span></div>
+  <h1>滑模控制</h1>
+<h3 id="bang-bang控制普通滑模">Bang-bang控制（普通滑模）</h3>
+<p><span class="math inline">\(u_{BB} = -K ,\text{sgn}(s) = \begin{cases} -K  &amp; s &gt; 0 \quad \text{(全力反向输出，最大负向力矩)}\\ \ +K  &amp; s &lt; 0 \quad \text{(全力正向输出，最大正向力矩)} \end{cases}\)</span></p>
+<p>Bang-Bang 控制是最原始的开关控制形式。因此有明显的高频抖振。于是有两种改进方法：滞环控制和SMC。</p>
+<h3 id="滞环控制">滞环控制</h3>
+<p>将传统的 Bang-bang控制引入滞环宽度 2Δ 后，控制量分成两种状态（设误差 e = r - y）：</p>
+<p><span class="math inline">\(u_{hys} = \begin{cases} U_{\max}  &amp; e &gt; +\Delta \quad \text{(误差偏大时，全力正向输出)}\\ \ U_{\min}  &amp; e &lt; -\Delta \quad \text{(误差偏小时，全力反向输出)} \end{cases}\)</span></p>
+<p>而在<span class="math inline">\(-\Delta \le e \le +\Delta\)</span>区间内，控制量保持上一次的输出状态不变</p>
+<p>滞环控制本质上是用一个“死区”宽度 2Δ 把纯符号函数控制变得不再那么敏感。在滞环带（-Δ 到 +Δ）内部，系统靠惯性继续运行，从而减少开关频率。</p>
+<p>Δ 的设置参考噪声水平和稳态误差带：Δ 越大，开关次数越少，系统越平稳，但跟踪精度会下降；Δ 取得越小，控制越精准，但开关频率会显著升高，容易产生高频抖振甚至烧毁功率器件。</p>
+<p>滞环控制适合对响应速度要求高、对精确平稳性要求不高的场合。</p>
+<h3 id="smc带边界层滑模">SMC（带边界层滑模）</h3>
+<p>将传统的<span class="math inline">\(u_{PD} = - (K_p e + K_d \dot{e})\)</span>控制引入边界层 <span class="math inline">\(\Phi\)</span> 后，控制分成两部分（设滑模面 <span class="math inline">\(s = c e + \dot{e}\)</span>）：</p>
+<p><span class="math inline">\(u_{SMC} = -K \text{sat}(s/\Phi) =\begin{cases} -K \text{sgn}(s) &amp; |s| &gt; \Phi \quad \text{(外部：非线性满载输出)} \\ - \left( \frac{K c}{\Phi} e + \frac{K}{\Phi} \dot{e} \right) &amp; |s| \le \Phi \quad \text{(内部：超大增益 PD 控制)} \end{cases}\)</span></p>
+<p>可以看出，SMC控制相当于用最大控制量K截断了<span class="math inline">\(|s| &gt; \Phi\)</span>，防止偏移过大时控制量过大烧毁电机，在<span class="math inline">\(s=\Phi\)</span>时上下两个分段函数值相同，函数还是连续的。K的设置参考 K&gt;|外部扰动| + |模型不确定性|，因此SMC最后调好后会很“硬”。</p>
+<p>调参时，很多工程中会先按扰动上界设一个较大的 K，再通过 Φ 来“软化”边界层内的行为。Φ 越大抖振越小，但进入边界层后控制变软，抗扰动能力下降，稳态误差增大，Φ 越小控制越硬，跟踪越精准，但抖振会重新变严重（接近普通滑模）。c 越大，滑模面越陡，系统响应越快，但对噪声越敏感。</p>
+<p>当<span class="math inline">\(\Phi=0\)</span>时，退化为Bangbang控制。</p>
+<p>由于是PD控制没有I，如果系统存在持续的外部恒定扰动，在边界层内就会产生稳态误差。系统最终会在<span class="math inline">\(-\Phi&lt;s&#39;\neq s&lt;\Phi\)</span> 的地方平衡。于是 ISMC 加入积分项：<span class="math inline">\(- \left( \frac{K c}{\Phi} e + \frac{K}{\Phi} \dot{e} + \frac{K K_i}{\Phi} \int e dt \right)\)</span> 进行改进。2</p>
+<p>除此之外SMC还有4个针对问题的改进：</p>
+<ul>
+<li><br />
+
+<h5 id="tsmc终端滑模控制">TSMC终端滑模控制</h5>
+<p>滑模面 <span class="math inline">\(s = ce + \dot{e} = 0\)</span> 是一阶线性微分方程 <span class="math inline">\(\dot{e} = -ce\)</span>， <span class="math inline">\(e\)</span> 以指数形式收敛到 0 ，越接近 0 速度越慢。引入非线性的分数次幂<span class="math inline">\(s = \dot{e} + \beta e^{q/p}\)</span>来改变滑模面的形状， 使系统在接近原点时，导数项急剧增大。</p>
+<img src="/Users/cr/Library/Application Support/typora-user-images/image-20260412124917876.png" alt="image-20260412124917876" style="zoom:35%;" />
+</li>
+<li><br />
+
+<h5 id="sta超螺旋算法">STA超螺旋算法</h5>
+<p>边界层（饱和函数法）虽然缓解了抖振，但它是以牺牲一定的抗扰动精度为代价的（变软了）。把分为两部分：</p>
+<p>$\begin{cases}u= u_1 + u_2 \ u_1 = -k_1 \sqrt{|s|} \ \mathrm{sgn}(s) \ \dot{u}_2 = -k_2 \ \mathrm{sgn}(s) \end{cases} $</p>
+<p>积分项 <span class="math inline">\(u_2\)</span> 把高频的符号函数 <span class="math inline">\(\text{sgn}(s)\)</span> 给“积分”了一次，输出变成了一个连续的折线信号；而 <span class="math inline">\(u_1\)</span> 项包含 <span class="math inline">\(\sqrt{|s|}\)</span>，在 <span class="math inline">\(s \to 0\)</span> 时增益趋于无穷，保证了极强的鲁棒性。</p>
+<p><strong>结果：</strong> <strong>输出的控制量</strong> <strong><span class="math inline">\(u\)</span></strong> <strong>是连续的！</strong> 它在理论上彻底消除了（或者说极大平滑了）抖振，同时依然保持了滑模对匹配扰动的绝对鲁棒性。</p></li>
+<li><br />
+
+<h5 id="asmc自适应滑模控制">ASMC自适应滑模控制</h5>
+<p>系统扰动时大时小，K一直太大浪费能量，把<span class="math inline">\(\dot{\hat{K}} = \gamma |s|\)</span>变成动态的，当系统偏离滑模面（<span class="math inline">\(|s|\)</span> 变大），干扰变大就把增益 <span class="math inline">\(K\)</span> 调高。</p></li>
+<li><br />
+
+<h5 id="gsmc全局滑模控制">GSMC全局滑模控制</h5>
+<p>滑模控制只有在状态到达滑模面（<span class="math inline">\(s=0\)</span>）后，才具有抗干扰能力。从初始状态向滑模面运动的这段时间（到达阶段），系统容易受扰动影响。设计滑模面时加入一个随时间衰减的初始误差项<span class="math inline">\(s(t) = c e(t) + \dot{e}(t) - (c e(0) + \dot{e}(0)) e^{-\alpha t}\)</span>. 当 <span class="math inline">\(t=0\)</span> 时，<span class="math inline">\(s(0) = 0\)</span>。系统一开始就在滑模面，后面新加的项随时间衰减。</p></li>
+</ul>
+  <p class="src">原文：Chr0mium24/Blog 仓库，迁移前 main（astro-legacy 分支）的 src/content/posts/bangbang-control.md</p>
+</main>
+<footer class="site"><a href="/">← 首页</a><span>某某</span><span></span></footer>
+</body>
+</html>

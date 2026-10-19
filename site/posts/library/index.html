@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>某图书管理系统的分析 · 某某</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-screen-webfont/lxgwwenkaigbscreen.css">
+<link rel="stylesheet" href="/assets/site.css">
+<script type="module" src="/assets/page.js"></script>
+<style>
+  .raw { font: 11.5px/1.5 var(--mono); max-height: 12rem; overflow: auto; background: #efeadd; border-radius: 6px; padding: .6rem .8rem; margin: .6rem 0 0; white-space: pre-wrap; }
+  .steps .st { display: grid; grid-template-columns: 11rem minmax(0, 1fr); gap: .8rem; padding: .3rem 0; border-bottom: 1px dashed var(--line); align-items: baseline; }
+  .steps .k { color: var(--mute); font-size: .82rem; }
+  .steps code { background: none; padding: 0; font-size: .88rem; overflow-wrap: anywhere; }
+  .stamp-in { display: grid; grid-template-columns: minmax(0, 1fr); gap: .5rem; }
+</style>
+</head>
+<body>
+<header class="site"><a class="name" href="/">某某</a><nav><a href="/#essays">随笔</a><a href="/#notes" aria-current="page">笔记</a><a href="/#tools">小工具</a></nav></header>
+<main class="post">
+  <div class="kicker"><span>编程</span><span>2025-04-01</span></div>
+  <h1>某图书管理系统的分析</h1>
+  <p class="dek">接口给的是毫秒时间戳，几点哪间房空着？</p>
+  <p class="can"><span class="hand-dot"></span>能动的：拖 <b>时间线</b>　换 <b>房间类型</b>　改 <b>时间戳</b></p>
+  <blockquote class="mine"><span class="who">原文</span><p>只做了读，预订还没折腾，cookie的自动化获取有、麻烦</p></blockquote>
+
+  <p>代码做的事就两步：按日期和房间类型请求预约列表，再把每条预约的开始、结束时间从毫秒时间戳换成 GMT+8 的几点。换完以后，空房就是时间轴上没被占的那几段。</p>
+
+  <figure class="play wide" data-fig="./rooms.js">
+    <div class="fig-head"><span class="fig-no">图 1</span><span>一天的预约，按房间排开（示例数据）</span></div>
+    <div class="fig-body">
+      <div class="fig-main"><canvas class="rooms" aria-label="房间时间轴，可拖动时间线"></canvas></div>
+      <div class="fig-side">
+        <div class="ctl-label">房间类型（原文的 kindId）</div>
+        <div class="seg"><button value="oldlib_quietroom">旧馆安静室</button><button value="oldlib_groupstudyroom">旧馆小组室</button><button value="newlib_quietroom">新馆安静室</button><button value="newlib_groupstudyroom">新馆小组室</button></div>
+        <p class="readout" aria-live="polite"></p>
+      </div>
+    </div>
+    <details><summary>按原文的解析逻辑跑出来的 reservations</summary><pre class="raw"></pre></details>
+    <figcaption>灰条是被订掉的时段，绿色是红线所在那一刻还空着的整段空档。房间号和预约是编的，只有字段结构照着代码里解析的那几个（<code>roomSn</code>、<code>resvInfo</code>、<code>startTime</code>、<code>endTime</code>）。</figcaption>
+  </figure>
+
+  <h2><span class="n">1</span>时间戳怎么变成几点</h2>
+  <p>接口里的 <code>startTime</code> 是毫秒。原文的 <code>timestamp_to_gmt8_time_of_day</code> 先除以 1000，按 UTC 读出来，再换到 GMT+8，最后只留时分秒。<button class="try" data-target="#stamp" data-set='{"ms":1743465600000}'>试一个整点</button><button class="try" data-target="#stamp" data-set='{"ms":"abc"}'>试试不是数字</button></p>
+
+  <figure class="play wide" data-fig="./stamp.js" id="stamp">
+    <div class="fig-head"><span class="fig-no">图 2</span><span>毫秒时间戳 → GMT+8 的几点</span></div>
+    <div class="fig-body">
+      <div class="fig-main"><div class="steps"></div></div>
+      <div class="fig-side stamp-in">
+        <div class="ctl-label">时间戳（毫秒）</div>
+        <input name="ms" type="text" inputmode="numeric" spellcheck="false">
+        <div class="ctl-label">或者在当天里拖</div>
+        <input name="t" type="range" min="0" max="1439" step="1">
+        <p class="readout"></p>
+      </div>
+    </div>
+  </figure>
+
+  <h2><span class="n">2</span>原文代码</h2>
+  <details open><summary>Python（请求和解析）</summary>
+<pre><code>import requests
+import json
+from datetime import datetime
+import pytz
+IC_COOKIE = &quot;&quot;
+def timestamp_to_gmt8_time_of_day(timestamp_ms):
+    &quot;&quot;&quot;
+    将毫秒级时间戳转化为 GMT+08:00 时区一天里的几点。
+
+    Args:
+        timestamp_ms: 毫秒级时间戳。
+
+    Returns:
+        一个字符串，表示 GMT+08:00 时区一天里的几点，格式为 &quot;HH:MM:SS&quot;。
+        如果输入不是数字或无法转换，则返回 None。
+    &quot;&quot;&quot;
+    try:
+        # 将毫秒转换为秒
+        timestamp_sec = timestamp_ms / 1000.0
+        # 创建 UTC 时间的 datetime 对象
+        utc_datetime = datetime.utcfromtimestamp(timestamp_sec)
+        # 获取 GMT+08:00 时区
+        gmt8_tz = pytz.timezone(&#x27;Etc/GMT-8&#x27;)  # 注意：pytz 中 GMT+08:00 可能表示为 &#x27;Etc/GMT-8&#x27; 或 &#x27;Asia/Shanghai&#x27; 等
+        # 将 UTC 时间转换为 GMT+08:00 时间
+        gmt8_datetime = utc_datetime.replace(tzinfo=pytz.utc).astimezone(gmt8_tz)
+        # 格式化为一天里的时间
+        time_of_day = gmt8_datetime.strftime(&#x27;%H:%M:%S&#x27;)
+        return time_of_day
+    except (TypeError, ValueError):
+        return None
+        
+def fetch_room_reservations(date,kind):
+    &quot;&quot;&quot;
+    Fetches room reservation data from the given URL and extracts occupied times.
+
+    Args:
+        url (str): The URL to fetch the reservation data from.
+
+    Returns:
+        dict: A dictionary where keys are room names and values are lists of
+              occupied time slots (start and end times in milliseconds).
+    &quot;&quot;&quot;
+    kindid = {
+        &quot;oldlib_quietroom&quot;:101766982,
+        &quot;oldlib_groupstudyroom&quot;:101420505,
+        &quot;newlib_quietroom&quot;:101505911,
+        &quot;newlib_groupstudyroom&quot;:100462149,
+    }[kind]
+    url = f&quot;https://librooms.cuhk.edu.cn/ic-web/reserve?sysKind=1&amp;resvDates={date}&amp;page=1&amp;pageSize=30&amp;kindIds={kindid}&amp;labId=&quot;
+    try:
+        headers={&#x27;Cookie&#x27;:&#x27;ic-cookie=IC_COOKIE&#x27;}
+        response = requests.get(url,headers=headers)
+        response.raise_for_status()  # Raise an exception for bad status codes
+        data = response.json()
+        if data.get(&quot;code&quot;) == 0 and data.get(&quot;message&quot;) == &quot;查询成功&quot;:
+            reservations = {}
+            for room in data[&#x27;data&#x27;]:
+                room_name = room[&#x27;roomSn&#x27;]
+                for reserve in room[&#x27;resvInfo&#x27;]:
+                    if not reservations.get(room_name):
+                        reservations[room_name]=[]
+                    reservations[room_name].append({&#x27;startTime&#x27;:timestamp_to_gmt8_time_of_day(reserve[&#x27;startTime&#x27;]),&#x27;endTime&#x27;:timestamp_to_gmt8_time_of_day(reserve[&#x27;endTime&#x27;])})
+            return reservations
+        else:
+            print(f&quot;Error: {data.get(&#x27;message&#x27;)}&quot;)
+            return None
+    except requests.exceptions.RequestException as e:
+        print(f&quot;Request error: {e}&quot;)
+        return None
+    except json.JSONDecodeError:
+        print(&quot;Error decoding JSON response.&quot;)
+        return None</code></pre></details>
+  <p class="src">原文：个人博客备份/某图书管理系统的分析.md（一句话和这段代码）。两张图、示例数据和第 1 节的说明是后加的。</p>
+</main>
+<footer class="site"><a href="/posts/logic/">← 数电小游戏</a><span>某某</span><a href="/posts/lambda/">Lambda初窥 →</a></footer>
+</body>
+</html>

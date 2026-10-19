@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>丝之歌mod和辅助网站 · 某某</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-screen-webfont/lxgwwenkaigbscreen.css">
+<link rel="stylesheet" href="/assets/site.css">
+<script type="module" src="/assets/page.js"></script>
+</head>
+<body>
+<header class="site"><a class="name" href="/">某某</a><nav><a href="/#essays">随笔</a><a href="/#notes" aria-current="page">笔记</a><a href="/#tools">小工具</a></nav></header>
+<main class="post">
+  <div class="kicker"><span>游戏</span><span>2025-09-15</span></div>
+  <h1>丝之歌mod和辅助网站</h1>
+<h3 id="mac-mod安装教程">mac mod安装教程</h3>
+<h4 id="intel版bepinex下载">intel版BepInEx下载</h4>
+<p>Github下载链接：<a href="https://github.com/BepInEx/BepInEx/releases/download/v5.4.23.3/BepInEx_macos_x64_5.4.23.3.zip">https://github.com/BepInEx/BepInEx/releases/download/v5.4.23.3/BepInEx_macos_x64_5.4.23.3.zip</a></p>
+<h4 id="arm版bepinex下载github-issue-链接-">arm版BepInEx下载(Github <a href="https://github.com/BepInEx/BepInEx/issues/899">issue 链接</a> )</h4>
+<blockquote>
+<p>You can build the Apple Silicon version yourself, it's based on existing pull requests from here <a href="https://github.com/Krakazybik/BepInEx/tree/feat/harmony-v-2-15-0">https://github.com/Krakazybik/BepInEx/tree/feat/harmony-v-2-15-0</a>. Build commands:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="bu">export</span> <span class="va">GITHUB_TOKEN</span><span class="op">=</span>ghp_xxx</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a> <span class="ex">./build.sh</span> <span class="at">--target</span><span class="op">=</span>Pack <span class="at">--doorstop_run</span><span class="op">=</span>17548755183</span></code></pre></div>
+<p>Alternatively, you can use the version I built, at your own risk. <a href="https://github.com/user-attachments/files/22302507/BepInEx_macos_arm64_5.4.23.3.zip">BepInEx_macos_arm64_5.4.23.3.zip</a></p>
+</blockquote>
+<p>下载zip后解压4个文件到Hollow Knight Silksong.app的同目录(<code>$GamePath</code>)，给权限：</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">chmod</span> +x run_bepinex.sh libdoorstop.dylib</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> xattr <span class="at">-r</span> <span class="at">-d</span> com.apple.quarantine libdoorstop.dylib</span></code></pre></div>
+<p>然后在Steam设置丝之歌启动项，将下面命令的目录设定为上文的<code>$GamePath</code>:</p>
+<ul>
+<li>intel版本：</li>
+</ul>
+<div class="sourceCode" id="cb3"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="st">&quot;/Users/cr/Library/Application Support/Steam/steamapps/common/Hollow Knight Silksong/run_bepinex.sh&quot;</span> %command%</span></code></pre></div>
+<ul>
+<li>arm版本：</li>
+</ul>
+<div class="sourceCode" id="cb4"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">/usr/bin/arch</span> <span class="at">-arm64</span> /bin/bash <span class="st">&quot;/Users/cr/Library/Application Support/Steam/steamapps/common/Hollow Knight Silksong/run_bepinex.sh&quot;</span> %command%</span></code></pre></div>
+<p>启动游戏后，BepInEx文件夹下为产生一堆文件，即为初始化成功，然后去网上下载mod，将dll文件放在加到<code>BepInEx/pligins</code>下即可。</p>
+<h3 id="辅助网站">辅助网站</h3>
+<p>存档分析：<a href="https://tureptor.github.io/silksong-save-analyzer/">https://tureptor.github.io/silksong-save-analyzer/</a></p>
+<p>存档中文分析（面具，灵丝，金属，纪念盒，苔莓）：<a href="https://rainincat.github.io/">https://rainincat.github.io/</a></p>
+<p>存档编辑（纯json）：<a href="https://bloodorca.github.io/hollow/">https://bloodorca.github.io/hollow/</a> 存档编辑：<a href="https://just-addwater.github.io/silksong-saveeditor/">https://just-addwater.github.io/silksong-saveeditor/</a></p>
+<p>跳蚤分析：<a href="https://mikkerlo.github.io/silksong-flea/">https://mikkerlo.github.io/silksong-flea/</a></p>
+  <p class="src">原文：Chr0mium24/Blog 仓库，9e2c0f8（del all posts）之前的 src/content/posts/macos-install-silksong-mod.md</p>
+</main>
+<footer class="site"><a href="/">← 首页</a><span>某某</span><span></span></footer>
+</body>
+</html>

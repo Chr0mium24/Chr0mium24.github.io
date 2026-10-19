@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>verilog入门 · 某某</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-screen-webfont/lxgwwenkaigbscreen.css">
+<link rel="stylesheet" href="/assets/site.css">
+<script type="module" src="/assets/page.js"></script>
+</head>
+<body>
+<header class="site"><a class="name" href="/">某某</a><nav><a href="/#essays">随笔</a><a href="/#notes" aria-current="page">笔记</a><a href="/#tools">小工具</a></nav></header>
+<main class="post">
+  <div class="kicker"><span>学习</span><span>2025-09-02</span></div>
+  <h1>verilog入门</h1>
+<h2 id="〇-文件类型">〇、 文件类型</h2>
+<p>有.v .sv两种文件，分别为Verilog和SystemVerilog，两者关系类似C和C++关系，SystemVerilog提供了面向对象和系统函数。Verilog中的运算符和流程控制语句也与C类似。</p>
+<h2 id="一模块module和端口port">一、模块(Module)和端口(Port)</h2>
+<h4 id="1基础用法">1.基础用法</h4>
+<div class="sourceCode" id="cb1"><pre class="sourceCode verilog"><code class="sourceCode verilog"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> and_gate <span class="op">(</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">input</span>  a<span class="op">,</span>       <span class="co">// 输入端口 a</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">input</span>  b<span class="op">,</span> c<span class="op">,</span>      <span class="co">// 当然你也可以写一起</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">output</span> out      <span class="co">// 输出端口 out</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="op">);</span> </span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  <span class="kw">assign</span> out <span class="op">=</span> a <span class="op">&amp;</span> b<span class="op">;</span> <span class="co">// 描述功能：out 是 a 和 b 的与运算结果</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="kw">endmodule</span></span></code></pre></div>
+<h4 id="2端口类型">2.端口类型</h4>
+<div class="sourceCode" id="cb2"><pre class="sourceCode verilog"><code class="sourceCode verilog"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> example <span class="op">(</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">input</span>             clk<span class="op">,</span>       <span class="co">// 1位的输入,未标注reg默认类型为wire</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">input</span> logic <span class="op">[</span><span class="dv">7</span><span class="op">:</span><span class="dv">0</span><span class="op">]</span>      data_in<span class="op">,</span>   <span class="co">// 8位的输入总线 (位宽为8)</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">output</span>            valid<span class="op">,</span>     <span class="co">// 1位的输出</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">output</span> <span class="dt">reg</span> <span class="op">[</span><span class="dv">15</span><span class="op">:</span><span class="dv">0</span><span class="op">]</span> data_out<span class="op">,</span>  <span class="co">// 16位的寄存器型输出</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">inout</span> <span class="op">[</span><span class="dv">3</span><span class="op">:</span><span class="dv">0</span><span class="op">]</span>       bus        <span class="co">// 4位的双向总线</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="op">);</span></span></code></pre></div>
+<ul>
+<li><p>Wire用于组合逻辑，不存储值，它的值由驱动它的元件（例如逻辑门或 assign 语句）决定。</p></li>
+<li><p>Reg用于时序逻辑，如触发器或锁存器。它可以保持一个值，代表一个存储元件，直到被重新赋值。必须在 always 或 initial 块中被赋值，但是在<code>always @(*)</code>中被赋值时，reg将变为类似wire的组合逻辑。</p></li>
+<li><p>Logic在SystemVerilog中被引进，属于Wire和Reg的综合，会自动判断属于哪种类型。</p></li>
+</ul>
+<h2 id="二基础语法">二、基础语法</h2>
+<h4 id="1字面量">1.字面量</h4>
+<p><strong>&lt;位宽&gt;'&lt;进制&gt;&lt;数值&gt;</strong> 左边高位，右边低位</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode verilog"><code class="sourceCode verilog"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="dt">wire</span> <span class="op">[</span><span class="dv">3</span><span class="op">:</span><span class="dv">0</span><span class="op">]</span> high_nibble <span class="op">=</span> <span class="bn">4&#39;b1010</span><span class="op">;</span> <span class="co">// &quot;nibble&quot; 指4位 </span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="dt">wire</span> <span class="op">[</span><span class="dv">3</span><span class="op">:</span><span class="dv">0</span><span class="op">]</span> low_nibble  <span class="op">=</span> <span class="bn">4&#39;b1100</span><span class="op">;</span> </span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="dt">wire</span> <span class="op">[</span><span class="dv">7</span><span class="op">:</span><span class="dv">0</span><span class="op">]</span> byte_data<span class="op">;</span> <span class="kw">assign</span> byte_data <span class="op">=</span> <span class="op">{</span>high_nibble<span class="op">,</span> low_nibble<span class="op">};</span><span class="co">// 将两个4位信号拼接成一个8位信号 10101100</span></span></code></pre></div>
+<h4 id="2常量">2.常量</h4>
+<ol type="1">
+<li>parameter 可被外部重写(override)</li>
+</ol>
+<div class="sourceCode" id="cb4"><pre class="sourceCode verilog"><code class="sourceCode verilog"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> memory #<span class="op">(</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">parameter</span> DATA_WIDTH <span class="op">=</span> <span class="dv">8</span><span class="op">,</span> <span class="co">// 定义一个可修改的参数</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">parameter</span> ADDR_WIDTH <span class="op">=</span> <span class="dv">10</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="op">)</span> <span class="op">(</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    <span class="co">// ...</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="op">);</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>    <span class="co">// ...</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a><span class="kw">endmodule</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a><span class="co">// 在实例化时，我们可以修改 DATA_WIDTH</span></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a><span class="co">// 创建一个16位宽的内存</span></span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>memory #<span class="op">(</span></span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>    .DATA_WIDTH<span class="op">(</span><span class="dv">16</span><span class="op">)</span> </span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a><span class="op">)</span> mem_inst <span class="op">(</span></span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>    <span class="co">// ...</span></span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a><span class="op">);</span></span></code></pre></div>
+<ol start="2" type="1">
+<li>localparam 局部常量外部无法修改，通常用作switch...case...语句的tag，用于代替常量</li>
+</ol>
+<div class="sourceCode" id="cb5"><pre class="sourceCode verilog"><code class="sourceCode verilog"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="dt">localparam</span> ADD <span class="op">=</span> <span class="bn">2&#39;b00</span><span class="op">;</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="kw">always</span> <span class="op">@(</span>*<span class="op">)</span> <span class="kw">begin</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>    <span class="kw">case</span> <span class="op">(</span>op_sel<span class="op">)</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>        <span class="dv">ADD:</span> result <span class="op">=</span> a <span class="op">+</span> b<span class="op">;</span> <span class="co">// 使用 localparam 提高可读性</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>        <span class="co">// ...</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>    <span class="kw">endcase</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span></code></pre></div>
+<h4 id="3运算符">3.运算符</h4>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th style="text-align: left;">操作符类型</th>
+<th style="text-align: left;">操作符</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>算术操作符</strong></td>
+<td style="text-align: left;"><code>+</code>, <code>-</code>, <code>*</code>, <code>/</code>, <code>%</code> (取模)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>位操作符</strong></td>
+<td style="text-align: left;"><code>~</code> (取反), <code>&amp;</code> (按位与), `</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>逻辑操作符</strong></td>
+<td style="text-align: left;"><code>!</code> (逻辑非), <code>&amp;&amp;</code> (逻辑与), `</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>关系操作符</strong></td>
+<td style="text-align: left;"><code>&gt;</code>, <code>&lt;</code>, <code>&gt;=</code>, <code>&lt;=</code>, <code>==</code> (等于), <code>!=</code> (不等于)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>移位操作符</strong></td>
+<td style="text-align: left;"><code>&lt;&lt;</code> (左移), <code>&gt;&gt;</code> (右移)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>拼接操作符</strong></td>
+<td style="text-align: left;"><code>{}</code>, 例如 <code>{a, b}</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>复制操作符</strong></td>
+<td style="text-align: left;"><code>{{}}</code>, 例如 <code>{4{1'b1}}</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>系统函数</strong></td>
+<td style="text-align: left;">如<code>$countones</code>，assign x = ($countones({A,B,C,D}) == 3);</td>
+</tr>
+</tbody>
+</table></div>
+<h4 id="4不同端口的赋值">4.不同端口的赋值</h4>
+<p>wire: 使用assign 连续赋值</p>
+<p>reg:使用initial或always过程赋值，又分两种：</p>
+<ul>
+<li><p><strong>阻塞赋值 (Blocking Assignment) =</strong> 立即执行并完成赋值</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode verilog"><code class="sourceCode verilog"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co">// 阻塞赋值 (组合逻辑)</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="kw">always</span> <span class="op">@(</span>*<span class="op">)</span> <span class="kw">begin</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  b <span class="op">=</span> a<span class="op">;</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  c <span class="op">=</span> b<span class="op">;</span> <span class="co">// 这里的 b 是已经被 a 赋值后的新值</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span></code></pre></div></li>
+<li><p><strong>非阻塞赋值 (Non-blocking Assignment) &lt;=</strong> 语句的右侧表达式会被计算，但赋值操作会延迟到整个块结束时才同时发生，行为是并行的</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode verilog"><code class="sourceCode verilog"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co">// 非阻塞赋值 (时序逻辑)</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="kw">always</span> <span class="op">@(</span><span class="kw">posedge</span> clk<span class="op">)</span> <span class="kw">begin</span> <span class="co">//(posedge: 上升沿触发，negedge: 下降沿触发)</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  q1 <span class="op">&lt;=</span> d<span class="op">;</span> <span class="co">// 在时钟上升沿，计算 d 的值</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  q2 <span class="op">&lt;=</span> q1<span class="op">;</span> <span class="co">// 同时，计算 q1 的旧值</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>           <span class="co">// 在块结束时，q1 更新为 d 的值，q2 更新为 q1 的旧值</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>           <span class="co">// 这会形成一个两级触发器</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span></code></pre></div></li>
+</ul>
+<blockquote>
+<p>注意⚠️：尽管从<strong>最终生成的硬件电路</strong>的角度来看，always @(*) 块和使用 assign 驱动的 wire <strong>是等价的</strong>,但是always存在产生额外锁存器的风险，且层级和assign不同</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode verilog"><code class="sourceCode verilog"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co">// 这个代码会生成一个锁存器！</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="kw">always</span> <span class="op">@(</span>*<span class="op">)</span> <span class="kw">begin</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>     <span class="kw">if</span> <span class="op">(</span>enable <span class="op">==</span> <span class="bn">1&#39;b1</span><span class="op">)</span> <span class="kw">begin</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>         q <span class="op">=</span> d<span class="op">;</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>     <span class="kw">end</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>     <span class="co">// 问题：当 enable 不等于 1 时，没有告诉 q 应该是什么值！</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>     <span class="co">// 综合器会认为：q 必须保持它之前的值，因此需要一个锁存器来存储它。</span></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span></code></pre></div>
+<div class="sourceCode" id="cb9"><pre class="sourceCode verilog"><code class="sourceCode verilog"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co">// 修正：为所有分支都提供赋值</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="kw">always</span> <span class="op">@(</span>*<span class="op">)</span> <span class="kw">begin</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>      <span class="kw">if</span> <span class="op">(</span>enable <span class="op">==</span> <span class="bn">1&#39;b1</span><span class="op">)</span> <span class="kw">begin</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>          q <span class="op">=</span> d<span class="op">;</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>      <span class="kw">end</span> <span class="kw">else</span> <span class="kw">begin</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>          q <span class="op">=</span> <span class="bn">1&#39;b0</span><span class="op">;</span> <span class="co">// 或者 q = d_default_value;</span></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>      <span class="kw">end</span></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span></code></pre></div>
+<p>**何时使用always @(*)：**当逻辑很复杂，需要用到 <code>if-else</code> 或 <code>case</code> 语句来提高代码可读性时，例如解码器、算术逻辑单元 (ALU)、状态机的组合逻辑部分等，可以像写高级语言一样描述复杂的逻辑。但仍需确保所有 <code>reg</code> 在所有代码分支中都被赋值，以避免意外生成锁存器。</p>
+</blockquote>
+<h2 id="三建模思想">三、建模思想</h2>
+<h4 id="1-行为级建模-behavioral-modeling">1. 行为级建模 (Behavioral Modeling)</h4>
+<div class="sourceCode" id="cb10"><pre class="sourceCode verilog"><code class="sourceCode verilog"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="kw">assign</span> <span class="op">{</span>c_out<span class="op">,</span> sum<span class="op">}</span> <span class="op">=</span> a <span class="op">+</span> b <span class="op">+</span> c_in<span class="op">;</span>    </span></code></pre></div>
+<h4 id="2-数据流建模-dataflow-modeling">2. 数据流建模 (Dataflow Modeling)</h4>
+<div class="sourceCode" id="cb11"><pre class="sourceCode verilog"><code class="sourceCode verilog"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="kw">assign</span> sum <span class="op">=</span> a <span class="op">^</span> b <span class="op">^</span> c_in<span class="op">;</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="kw">assign</span> c_out <span class="op">=</span> <span class="op">(</span>a <span class="op">&amp;</span> b<span class="op">)</span> <span class="op">|</span> <span class="op">(</span>b <span class="op">&amp;</span> c_in<span class="op">)</span> <span class="op">|</span> <span class="op">(</span>a <span class="op">&amp;</span> c_in<span class="op">);</span></span></code></pre></div>
+<h4 id="3-结构级建模-structural-modeling">3. 结构级建模 (Structural Modeling)</h4>
+<div class="sourceCode" id="cb12"><pre class="sourceCode verilog"><code class="sourceCode verilog"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co">// 首先需要一个半加器模块</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> half_adder<span class="op">(</span><span class="dt">input</span> a<span class="op">,</span> b<span class="op">,</span> <span class="dt">output</span> s<span class="op">,</span> c<span class="op">);</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">assign</span> s <span class="op">=</span> a <span class="op">^</span> b<span class="op">;</span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>    <span class="kw">assign</span> c <span class="op">=</span> a <span class="op">&amp;</span> b<span class="op">;</span></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a><span class="kw">endmodule</span></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a><span class="co">// 然后用结构化方式搭建全加器</span></span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> full_adder_struct<span class="op">(</span></span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>    <span class="dt">input</span> a<span class="op">,</span> b<span class="op">,</span> c_in<span class="op">,</span></span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>    <span class="dt">output</span> sum<span class="op">,</span> c_out</span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a><span class="op">);</span></span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>    <span class="dt">wire</span> s1<span class="op">,</span> c1<span class="op">,</span> c2<span class="op">;</span> <span class="co">// 定义内部连线</span></span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>    <span class="co">// 实例化第一个半加器</span></span>
+<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a>    half_adder ha1 <span class="op">(</span></span>
+<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a>        .a<span class="op">(</span>a<span class="op">),</span> </span>
+<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a>        .b<span class="op">(</span>b<span class="op">),</span> </span>
+<span id="cb12-18"><a href="#cb12-18" aria-hidden="true" tabindex="-1"></a>        .s<span class="op">(</span>s1<span class="op">),</span> </span>
+<span id="cb12-19"><a href="#cb12-19" aria-hidden="true" tabindex="-1"></a>        .c<span class="op">(</span>c1<span class="op">)</span></span>
+<span id="cb12-20"><a href="#cb12-20" aria-hidden="true" tabindex="-1"></a>    <span class="op">);</span></span>
+<span id="cb12-21"><a href="#cb12-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-22"><a href="#cb12-22" aria-hidden="true" tabindex="-1"></a>    <span class="co">// 实例化第二个半加器</span></span>
+<span id="cb12-23"><a href="#cb12-23" aria-hidden="true" tabindex="-1"></a>    half_adder ha2 <span class="op">(</span></span>
+<span id="cb12-24"><a href="#cb12-24" aria-hidden="true" tabindex="-1"></a>        .a<span class="op">(</span>s1<span class="op">),</span> </span>
+<span id="cb12-25"><a href="#cb12-25" aria-hidden="true" tabindex="-1"></a>        .b<span class="op">(</span>c_in<span class="op">),</span> </span>
+<span id="cb12-26"><a href="#cb12-26" aria-hidden="true" tabindex="-1"></a>        .s<span class="op">(</span>sum<span class="op">),</span> </span>
+<span id="cb12-27"><a href="#cb12-27" aria-hidden="true" tabindex="-1"></a>        .c<span class="op">(</span>c2<span class="op">)</span></span>
+<span id="cb12-28"><a href="#cb12-28" aria-hidden="true" tabindex="-1"></a>    <span class="op">);</span></span>
+<span id="cb12-29"><a href="#cb12-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-30"><a href="#cb12-30" aria-hidden="true" tabindex="-1"></a>    <span class="co">// 用一个或门连接两个进位</span></span>
+<span id="cb12-31"><a href="#cb12-31" aria-hidden="true" tabindex="-1"></a>    <span class="dt">or</span> U1 <span class="op">(</span>c_out<span class="op">,</span> c1<span class="op">,</span> c2<span class="op">);</span></span>
+<span id="cb12-32"><a href="#cb12-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-33"><a href="#cb12-33" aria-hidden="true" tabindex="-1"></a><span class="kw">endmodule</span></span></code></pre></div>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th style="text-align: left;">建模级别</th>
+<th style="text-align: left;">核心思想</th>
+<th style="text-align: left;">主要关键字/语法</th>
+<th style="text-align: left;">抽象程度</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>行为级 (Behavioral)</strong></td>
+<td style="text-align: left;">描述电路的<strong>功能、算法</strong></td>
+<td style="text-align: left;"><code>always</code>, <code>initial</code>, <code>if-else</code>, <code>case</code>, <code>+</code></td>
+<td style="text-align: left;"><strong>最高</strong></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>数据流 (Dataflow)</strong></td>
+<td style="text-align: left;">描述数据在电路中的<strong>流动和变换</strong></td>
+<td style="text-align: left;"><code>assign</code>, 逻辑运算符</td>
+<td style="text-align: left;"><strong>中等</strong></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>结构级 (Structural)</strong></td>
+<td style="text-align: left;">描述电路的<strong>构成和连接</strong></td>
+<td style="text-align: left;">模块实例化 (<code>module_name inst_name (...)</code>)</td>
+<td style="text-align: left;"><strong>最低</strong></td>
+</tr>
+</tbody>
+</table></div>
+  <p class="src">原文：Chr0mium24/Blog 仓库，9e2c0f8（del all posts）之前的 src/content/posts/verilog-tut.md</p>
+</main>
+<footer class="site"><a href="/">← 首页</a><span>某某</span><span></span></footer>
+</body>
+</html>

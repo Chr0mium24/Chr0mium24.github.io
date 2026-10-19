@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>lcapy中设置受控源 · 某某</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-screen-webfont/lxgwwenkaigbscreen.css">
+<link rel="stylesheet" href="/assets/site.css">
+<script type="module" src="/assets/page.js"></script>
+</head>
+<body>
+<header class="site"><a class="name" href="/">某某</a><nav><a href="/#essays">随笔</a><a href="/#notes" aria-current="page">笔记</a><a href="/#tools">小工具</a></nav></header>
+<main class="post">
+  <div class="kicker"><span>代码</span><span>2025-09-26</span></div>
+  <h1>lcapy中设置受控源</h1>
+<p>Lcapy 中设置受控源非常直观，它沿用了 SPICE 的经典语法。Lcapy 支持所有四种基本类型的线性受控源。</p>
+<p>这四种受控源分别是：</p>
+<ol type="1">
+<li><strong>E</strong>: 压控电压源 (VCVS - Voltage-Controlled Voltage Source)</li>
+<li><strong>G</strong>: 压控电流源 (VCCS - Voltage-Controlled Current Source)</li>
+<li><strong>H</strong>: 流控电压源 (CCVS - Current-Controlled Voltage Source)</li>
+<li><strong>F</strong>: 流控电流源 (CCCS - Current-Controlled Current Source)</li>
+</ol>
+<p>下面我将详细解释每一种的设置方法，并提供可运行的 Python 代码示例。</p>
+<hr />
+<h4 id="1-压控电压源-vcvs---e-元件">1. 压控电压源 (VCVS) - E 元件</h4>
+<p>它的电压由电路中另外两点的电压差控制。</p>
+<p><strong>语法</strong>: <code>E&lt;name&gt; n+ n- nc+ nc- K</code></p>
+<ul>
+<li><code>E&lt;name&gt;</code>: 元件名称，例如 <code>E1</code>。</li>
+<li><code>n+ n-</code>: 受控源自身的正负节点。</li>
+<li><code>nc+ nc-</code>: <strong>控制电压</strong>的参考正负节点。</li>
+<li><code>K</code>: 电压增益（无单位）。</li>
+<li>关系式: <code>V(n+, n-) = K * V(nc+, nc-)</code></li>
+</ul>
+<p><strong>示例代码:</strong></p>
+<p>假设我们要建立一个电压放大器模型，其输出电压是输入电压的 5 倍。</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> lcapy <span class="im">import</span> Circuit</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="co"># 定义电路</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co"># V1 是输入电压源</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="co"># R1 是输入电阻</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="co"># E1 是压控电压源，它的电压由节点1和0之间的电压（即V1的电压）控制</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="co"># R2 是输出负载</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>cct_vcvs <span class="op">=</span> Circuit(<span class="st">&quot;&quot;&quot;</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="st">V1 1 0 {u(t)}; down</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="st">R1 1 0 1k; right=2</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="st">E1 2 0 1 0 5; right=2, l=A_v=5</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="st">R2 2 0 1k; down</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="st">&quot;&quot;&quot;</span>)</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="co"># 绘制电路图</span></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>cct_vcvs.draw(style<span class="op">=</span><span class="st">&#39;american&#39;</span>)</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a><span class="co"># 求解节点2的电压 V_out</span></span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>V_out <span class="op">=</span> cct_vcvs[<span class="dv">2</span>].v</span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f&quot;压控电压源 (VCVS) 的输出电压 V(2): </span><span class="sc">{</span>V_out<span class="sc">}</span><span class="ss">&quot;</span>)</span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a><span class="co"># 预期结果: V(2) = 5 * V(1) = 5 * u(t)</span></span></code></pre></div>
+<hr />
+<h4 id="2-压控电流源-vccs---g-元件">2. 压控电流源 (VCCS) - G 元件</h4>
+<p>它产生的电流由电路中另外两点的电压差控制。</p>
+<p><strong>语法</strong>: <code>G&lt;name&gt; n+ n- nc+ nc- Gm</code></p>
+<ul>
+<li><code>G&lt;name&gt;</code>: 元件名称，例如 <code>G1</code>。</li>
+<li><code>n+ n-</code>: 电流<strong>从 n+ 流向 n-</strong>。</li>
+<li><code>nc+ nc-</code>: <strong>控制电压</strong>的参考正负节点。</li>
+<li><code>Gm</code>: 跨导增益（单位是西门子 S）。</li>
+<li>关系式: <code>I(n+ -&gt; n-) = Gm * V(nc+, nc-)</code></li>
+</ul>
+<p><strong>示例代码:</strong></p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> lcapy <span class="im">import</span> Circuit</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="co"># 定义电路</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="co"># V1 是输入电压</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="co"># G1 是压控电流源，其电流由节点1和0之间的电压控制</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="co"># R1 是输出负载，G1产生的电流流过它</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>cct_vccs <span class="op">=</span> Circuit(<span class="st">&quot;&quot;&quot;</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="st">V1 1 0 {u(t)}; down</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="st">W 1 2; right # 导线</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="st">G1 2 0 1 0 0.1; down, l^=G_m=0.1</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="st">R1 2 0 50; right</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a><span class="st">&quot;&quot;&quot;</span>)</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>cct_vccs.draw(style<span class="op">=</span><span class="st">&#39;american&#39;</span>)</span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a><span class="co"># 求解流过电阻R1的电流 I_R1</span></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>I_R1 <span class="op">=</span> cct_vccs.R1.i</span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f&quot;压控电流源 (VCCS) 产生的电流 I(R1): </span><span class="sc">{</span>I_R1<span class="sc">}</span><span class="ss">&quot;</span>)</span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a><span class="co"># 预期结果: I(R1) = 0.1 * V(1) = 0.1 * u(t)</span></span></code></pre></div>
+<hr />
+<h4 id="3-流控电压源-ccvs---h-元件">3. 流控电压源 (CCVS) - H 元件</h4>
+<p>它的电压由流过<strong>另一个元件</strong>的电流控制。</p>
+<p><strong>关键点</strong>: Lcapy 需要一个“电流传感器”来确定控制电流。通常，我们会使用一个<strong>0V的电压源 (dummy voltage source)</strong> 串联在需要测量电流的支路中，然后用这个0V电压源的名称来指定控制电流。</p>
+<p><strong>语法</strong>: <code>H&lt;name&gt; n+ n- V_sensor Rm</code></p>
+<ul>
+<li><code>H&lt;name&gt;</code>: 元件名称，例如 <code>H1</code>。</li>
+<li><code>n+ n-</code>: 受控源自身的正负节点。</li>
+<li><code>V_sensor</code>: <strong>作为电流传感器的0V电压源</strong>的名称。</li>
+<li><code>Rm</code>: 跨阻增益（单位是欧姆 Ω）。</li>
+<li>关系式: <code>V(n+, n-) = Rm * I(V_sensor)</code></li>
+</ul>
+<p><strong>示例代码:</strong></p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> lcapy <span class="im">import</span> Circuit</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="co"># 定义电路</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Vsense 是一个0V的电压源，用于“感知”流过 R1 的电流</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="co"># H1 是流控电压源，它的电压由流过 Vsense 的电流控制</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>cct_ccvs <span class="op">=</span> Circuit(<span class="st">&quot;&quot;&quot;</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="st">I1 0 1 {u(t)}; up</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="st">R1 1 a 100; right</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a><span class="st">Vsense a 0 0; down # 0V电压源作为电流传感器</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a><span class="st">H1 2 0 Vsense 50; right=3, l=R_m=50</span></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a><span class="st">R2 2 0 1k; down</span></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a><span class="st">&quot;&quot;&quot;</span>)</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>cct_ccvs.draw(style<span class="op">=</span><span class="st">&#39;american&#39;</span>)</span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a><span class="co"># 求解节点2的电压 V_out</span></span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>V_out <span class="op">=</span> cct_ccvs[<span class="dv">2</span>].v</span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f&quot;流控电压源 (CCVS) 的输出电压 V(2): </span><span class="sc">{</span>V_out<span class="sc">}</span><span class="ss">&quot;</span>)</span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a><span class="co"># 预期结果: I(Vsense) = I1 = u(t), 所以 V(2) = 50 * I(Vsense) = 50 * u(t)</span></span></code></pre></div>
+<hr />
+<h4 id="4-流控电流源-cccs---f-元件">4. 流控电流源 (CCCS) - F 元件</h4>
+<p>它产生的电流由流过<strong>另一个元件</strong>的电流控制。和 CCVS 一样，它也需要一个0V电压源作为电流传感器。</p>
+<p><strong>语法</strong>: <code>F&lt;name&gt; n+ n- V_sensor Beta</code></p>
+<ul>
+<li><code>F&lt;name&gt;</code>: 元件名称，例如 <code>F1</code>。</li>
+<li><code>n+ n-</code>: 电流<strong>从 n+ 流向 n-</strong>。</li>
+<li><code>V_sensor</code>: <strong>作为电流传感器的0V电压源</strong>的名称。</li>
+<li><code>Beta</code>: 电流增益（无单位），通常用于BJT等模型。</li>
+<li>关系式: <code>I(n+ -&gt; n-) = Beta * I(V_sensor)</code></li>
+</ul>
+<p><strong>示例代码 (BJT简化模型):</strong></p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> lcapy <span class="im">import</span> Circuit</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="co"># 定义电路</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="co"># V1 是基极驱动</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Vsense 用于感知基极电流 I_b</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="co"># F1 是流控电流源，模拟集电极电流 I_c = Beta * I_b</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="co"># R_L 是集电极负载电阻</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>cct_cccs <span class="op">=</span> Circuit(<span class="st">&quot;&quot;&quot;</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a><span class="st">V1 1 0 {u(t)}; down</span></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a><span class="st">R_B 1 a 1k; right</span></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a><span class="st">Vsense a 0 0; down # 感知基极电流 I_b</span></span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a><span class="st">F1 2 0 Vsense 100; down, l^=</span><span class="ch">\\</span><span class="st">beta=100 # I_c = 100 * I_b</span></span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a><span class="st">V_CC 2 0 10; right # 电源</span></span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a><span class="st">R_L 2 b 500; up # 负载电阻</span></span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a><span class="st">W b V_CC.p; right</span></span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a><span class="st">&quot;&quot;&quot;</span>)</span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>cct_cccs.draw(style<span class="op">=</span><span class="st">&#39;american&#39;</span>)</span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a><span class="co"># 求解集电极电流 (即流过F1的电流)</span></span>
+<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a>I_c <span class="op">=</span> cct_cccs.F1.i</span>
+<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f&quot;流控电流源 (CCCS) 产生的电流 I(F1): </span><span class="sc">{</span>I_c<span class="sc">}</span><span class="ss">&quot;</span>)</span>
+<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a><span class="co"># 预期结果: I_b = V1 / R_B = u(t)/1000, 所以 I_c = 100 * I_b = 0.1 * u(t)</span></span></code></pre></div>
+<h4 id="总结">总结</h4>
+<div class="table-wrap wide"><table>
+<thead>
+<tr>
+<th style="text-align: left;">类型</th>
+<th style="text-align: left;">元件</th>
+<th style="text-align: left;">描述</th>
+<th style="text-align: left;">控制量</th>
+<th style="text-align: left;">输出量</th>
+<th style="text-align: left;">语法</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>VCVS</strong></td>
+<td style="text-align: left;"><strong>E</strong></td>
+<td style="text-align: left;">压控电压源</td>
+<td style="text-align: left;">电压 <code>V(nc+, nc-)</code></td>
+<td style="text-align: left;">电压</td>
+<td style="text-align: left;"><code>E name n+ n- nc+ nc- K</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>VCCS</strong></td>
+<td style="text-align: left;"><strong>G</strong></td>
+<td style="text-align: left;">压控电流源</td>
+<td style="text-align: left;">电压 <code>V(nc+, nc-)</code></td>
+<td style="text-align: left;">电流</td>
+<td style="text-align: left;"><code>G name n+ n- nc+ nc- Gm</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>CCVS</strong></td>
+<td style="text-align: left;"><strong>H</strong></td>
+<td style="text-align: left;">流控电压源</td>
+<td style="text-align: left;">电流 <code>I(V_sensor)</code></td>
+<td style="text-align: left;">电压</td>
+<td style="text-align: left;"><code>H name n+ n- V_sensor Rm</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>CCCS</strong></td>
+<td style="text-align: left;"><strong>F</strong></td>
+<td style="text-align: left;">流控电流源</td>
+<td style="text-align: left;">电流 <code>I(V_sensor)</code></td>
+<td style="text-align: left;">电流</td>
+<td style="text-align: left;"><code>F name n+ n- V_sensor Beta</code></td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>最重要的技巧</strong>: 当你需要用电流作为控制量时（CCVS 和 CCCS），记得在被控制的支路中串联一个<strong>值为0的电压源</strong>，并用它的名字来告诉 Lcapy 你要测量哪里的电流。</p>
+  <p class="src">原文：Chr0mium24/Blog 仓库，9e2c0f8（del all posts）之前的 src/content/posts/lcapy.md</p>
+</main>
+<footer class="site"><a href="/">← 首页</a><span>某某</span><span></span></footer>
+</body>
+</html>

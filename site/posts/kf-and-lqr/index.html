@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LQR与卡尔曼滤波的同构(草稿) · 某某</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-screen-webfont/lxgwwenkaigbscreen.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="/assets/site.css">
+<script type="module" src="/assets/page.js"></script>
+</head>
+<body>
+<header class="site"><a class="name" href="/">某某</a><nav><a href="/#essays">随笔</a><a href="/#notes" aria-current="page">笔记</a><a href="/#tools">小工具</a></nav></header>
+<main class="post">
+  <div class="kicker"><span>知识</span><span>2026-04-19</span></div>
+  <h1>LQR与卡尔曼滤波的同构(草稿)</h1>
+<h3 id="卡尔曼滤波">卡尔曼滤波</h3>
+<h5 id="状态方程">状态方程</h5>
+<p><span class="math display">\[
+\left\{\begin{aligned}
+x_k &amp;= A x_{k-1} + B u_{k-1} + w_{k-1}\\
+z_k &amp;= H x_k + v_k
+\end{aligned}
+\right.
+\]</span></p>
+<p>其中<span class="math inline">\(w\)</span>是外界扰动，协方差记作<span class="math inline">\(Q=E[ww^T]\)</span></p>
+<p><span class="math inline">\(v\)</span>是观测误差，协方差记作<span class="math inline">\(R=E[vv^T]\)</span></p>
+<p>根据卡尔曼滤波的概率论假设，过程噪声和测量噪声必须是相互独立的白噪声，且服从高斯（正态）分布： <span class="math inline">\(w \sim \mathcal{N}(0, Q)\)</span>， <span class="math inline">\(v \sim \mathcal{N}(0, R)\)</span>。</p>
+<p>各种噪声相互独立，因此：<span class="math inline">\(E[e_k^- v_k^T] = 0\)</span>，<span class="math inline">\(E[v_k (e_k^-)^T] = 0\)</span>，<span class="math inline">\(E[e_{k} w_{k}^T ]=0\)</span></p>
+<h5 id="更新方程">更新方程</h5>
+<p><span class="math inline">\(\hat{x}_k = \hat{x}_k^- + K_k (z_k - H \hat{x}_k^-)\)</span></p>
+<p>为什么更新方程长这样呢。考虑两个独立的信息源：一个是基于模型的先验预测分布 <span class="math inline">\(\mathcal{N}(\hat{x}_k^-, P_k^-)\)</span>，另一个是传感器的测量分布 <span class="math inline">\(\mathcal{N}(z_k, R)\)</span>。根据贝叶斯定理，结合两个独立证据的后验概率等于两个高斯概率密度函数的乘积。两个高斯指数项相加后，</p>
+<p><span class="math display">\[
+P \propto e^{\left(-\frac{(x - \mu_1)^2}{2\sigma_1^2}\right)} \times e^{\left(-\frac{(x - \mu_2)^2}{2\sigma_2^2}\right)} = e^{-\left(\frac{(x - \mu_1)^2}{2\sigma_1^2} + \frac{(x - \mu_2)^2}{2\sigma_2^2}\right)}
+\]</span></p>
+<p>其均值必定呈现出一种线性加权的形式。因此，假设后验状态的线性更新结构：<span class="math inline">\(\hat{x}_k = \hat{x}_k^- + K_k (z_k - H \hat{x}_k^-)\)</span>，接下来我们只需通过最小化方差来求解最优的权重矩阵 <span class="math inline">\(K_k\)</span>。</p>
+<p><span class="math inline">\(\hat{x}_k^- = A \hat{x}_{k-1} + B u_{k-1}\)</span></p>
+<p><span class="math inline">\(e_k^- = x_k - \hat{x}_k^- = A(x_{k-1} - \hat{x}_{k-1}) + w_{k-1}= A e_{k-1} + w_{k-1}\)</span></p>
+<p>把e的协方差记作<span class="math inline">\(P=E[ee^T]\)</span>，因此：</p>
+<p><span class="math display">\[
+\begin{aligned}
+P_k^- &amp;= E[e_k^- (e_k^-)^T] \\
+&amp;= E[(A e_{k-1} + w_{k-1})(A e_{k-1} + w_{k-1})^T] \\
+&amp;= E[A e_{k-1} e_{k-1}^T A^T + A e_{k-1} w_{k-1}^T + w_{k-1} e_{k-1}^T A^T + w_{k-1} w_{k-1}^T] \\
+&amp;= A E[e_{k-1} e_{k-1}^T] A^T + E[w_{k-1} w_{k-1}^T] \\
+&amp;= A P_{k-1} A^T + Q
+\end{aligned}
+\]</span></p>
+<p>为计算后验<span class="math inline">\(P_k = E[e_k e_k^T]\)</span>，先算<span class="math inline">\(e_k\)</span>:</p>
+<p><span class="math display">\[
+\begin{aligned}
+e_k &amp;= x_k - \hat{x}_k \\
+&amp;= x_k - (\hat{x}_k^- + K_k(z_k - H \hat{x}_k^-)) \\
+&amp;= x_k - (\hat{x}_k^- + K_k((H x_k + v_k) - H \hat{x}_k^-))\\
+&amp;= (I - K_k H) e_k^- - K_k v_k
+\end{aligned}
+\]</span></p>
+<p><span class="math display">\[
+\begin{aligned}
+P_k &amp;= E[e_k e_k^T] \\
+&amp;= E[((I - K_k H) e_k^- - K_k v_k) ((I - K_k H) e_k^- - K_k v_k)^T]\\
+&amp;=(I - K\_k H) E[e_k^- (e\_k^-)^T] (I - K\_k H)^T- (I - K_k H) E[e_k^- v_k^T] K_k^T- K_k E[v_k (e_k^-)^T] (I - K_k H)^T+ K_k E[v_k v_k^T] K_k^T \\
+&amp;= (I - K_k H) P_k^- (I - K_k H)^T - 0 - 0 + K_k R K_k^T\\
+&amp;= (I - K_k H) P_k^- (I - K_k H)^T + K_k R K_k^T
+\end{aligned}
+\]</span></p>
+<p>我们希望系统各个状态变量的误差越小越好，协方差矩阵对角线上的元素是各个变量的方差。因此要让 <span class="math inline">\(P_k\)</span> 对角线元素之和，即矩阵的迹最小化。</p>
+<p>根据<span class="math inline">\(\frac{\partial Tr(AB)}{\partial A} = B^T\)</span>，<span class="math inline">\(\frac{\partial Tr(A B A^T)}{\partial A} = 2 A B\)</span></p>
+<p><span class="math display">\[
+\begin{aligned}
+J &amp;= Tr(P_k) \\
+&amp;= Tr(P_k^- - K_k H P_k^- - P_k^- H^T K_k^T + K_k H P_k^- H^T K_k^T + K_k R K_k^T)\\
+&amp;= Tr(P_k^-) - 2 Tr(K_k H P_k^-) + Tr(K_k (H P_k^- H^T + R) K_k^T)\\
+&amp;= -2 P_k^- H^T + 2 K_k (H P_k^- H^T + R)
+\end{aligned}
+\]</span></p>
+<p>令<span class="math inline">\(\frac{\partial J}{\partial K_k} = 0\)</span>，</p>
+<p><span class="math display">\[
+K_k = P_k^- H^T (H P_k^- H^T + R)^{-1}
+\]</span></p>
+<p>这便是卡尔曼滤波的增益公式。</p>
+<h5 id="性质">性质</h5>
+<p>如果观测矩阵 <span class="math inline">\(H=I\)</span> ，此时最优卡尔曼增益变为 <span class="math inline">\(K = \frac{P^-}{P^- + R}\)</span>。代入协方差更新方程 <span class="math inline">\(P = (1 - K)P^-\)</span>可得<span class="math inline">\(\frac{1}{P} = \frac{1}{P^-} + \frac{1}{R}\)</span>。说明融合后的精确度（方差的倒数）等于预测精确度与测量精确度之和，独立信息源的叠加将导致总不确定度越融合越小。</p>
+<p>卡尔曼滤波的本质是将两个数据源通过协方差更小这个条件进行校准，更接近真实值。</p>
+<h3 id="扩展卡尔曼滤波">扩展卡尔曼滤波</h3>
+<p>现实系统往往是非线性函数。EKF扩展卡尔曼滤波通过泰勒展开取非线性函数的一阶泰勒展开继续使用卡尔曼滤波。</p>
+<p>将非线性的状态转移函数记为 <span class="math inline">\(f\)</span>，观测函数记为<span class="math inline">\(h\)</span>可以得到：</p>
+<p><span class="math display">\[
+\left\{
+\begin{aligned}
+h:x_k &amp;= f(x_{k-1}, u_{k-1}) + w_{k-1}\\
+z_k &amp;= h(x_k) + v_k
+\end{aligned}
+\right.
+\]</span></p>
+<p>进行泰勒展开：</p>
+<p><span class="math display">\[
+f(x_{k-1}, u_{k-1}) \approx f(\hat{x}_{k-1}, u_{k-1}) + F_k (x_{k-1} - \hat{x}_{k-1})，其中F_k = \frac{\partial f}{\partial x} \Bigg|_{\hat{x}_{k-1}, u_{k-1}}\\
+h(x_k) \approx h(\hat{x}_k^-) + H_k (x_k - \hat{x}_k^-)，其中H_k = \frac{\partial h}{\partial x} \Bigg|_{\hat{x}_k^-}
+\]</span></p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th style="text-align: left;"><strong>特性</strong></th>
+<th style="text-align: left;"><strong>标准卡尔曼滤波</strong></th>
+<th style="text-align: left;"><strong>扩展卡尔曼滤波(EKF)</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>系统模型</strong></td>
+<td style="text-align: left;">矩阵 <span class="math inline">\(A, B, H\)</span> 是常量或仅随时间变化</td>
+<td style="text-align: left;">函数 <span class="math inline">\(f(x), h(x)\)</span> 是非线性的</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>状态预测</strong></td>
+<td style="text-align: left;"><span class="math inline">\(\hat{x}_k^- = A\hat{x}_{k-1}\)</span></td>
+<td style="text-align: left;"><span class="math inline">\(\hat{x}_k^- = f(\hat{x}_{k-1}, u_{k-1})\)</span> <strong>(用原函数)</strong></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>协方差传递</strong></td>
+<td style="text-align: left;"><span class="math inline">\(P_k^- = A P_{k-1} A^T + Q\)</span></td>
+<td style="text-align: left;"><span class="math inline">\(P_k^- = \mathbf{F_k} P_{k-1} \mathbf{F_k}^T + Q\)</span></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>增益计算</strong></td>
+<td style="text-align: left;"><span class="math inline">\(K_k = P_k^- H^T (H P_k^- H^T + R)^{-1}\)</span></td>
+<td style="text-align: left;"><span class="math inline">\(K_k = P_k^- \mathbf{H_k}^T (\mathbf{H_k} P_k^- \mathbf{H_k}^T + R)^{-1}\)</span></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>更新残差</strong></td>
+<td style="text-align: left;"><span class="math inline">\(z_k - H\hat{x}_k^-\)</span></td>
+<td style="text-align: left;"><span class="math inline">\(z_k - h(\hat{x}_k^-)\)</span> <strong>(用原函数)</strong></td>
+</tr>
+</tbody>
+</table></div>
+  <p class="src">原文：Chr0mium24/Blog 仓库，迁移前 main（astro-legacy 分支）的 src/content/posts/kf-and-lqr.md</p>
+</main>
+<footer class="site"><a href="/">← 首页</a><span>某某</span><span></span></footer>
+</body>
+</html>
