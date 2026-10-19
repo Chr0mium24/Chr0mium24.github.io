@@ -26,6 +26,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Check JS syntax
+        run: find site -name '*.js' -print0 | xargs -0 -n1 node --check
+
       - name: Setup Pages
         uses: actions/configure-pages@v4
 
