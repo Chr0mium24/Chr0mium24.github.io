@@ -97,20 +97,20 @@ PAGE = '''<!doctype html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>{title} · 某某</title>
+<title>{title} · Cr's Blog</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-screen-webfont/lxgwwenkaigbscreen.css">
 {katex}<link rel="stylesheet" href="/assets/site.css">
 <script type="module" src="/assets/page.js"></script>
 </head>
 <body>
-<header class="site"><a class="name" href="/">某某</a><nav><a href="/#essays"{cur_e}>随笔</a><a href="/#notes"{cur_n}>笔记</a><a href="/#tools">小工具</a></nav></header>
+<header class="site"><a class="name" href="/">Cr's Blog</a><nav><a href="/#essays"{cur_e}>随笔</a><a href="/#notes"{cur_n}>笔记</a><a href="/#tools">小工具</a></nav></header>
 <main class="post">
   <div class="kicker"><span>{kind}</span><span>{date}</span>{ai}</div>
   <h1>{title}</h1>
 {dek}{body}
   <p class="src">原文：Chr0mium24/Blog 仓库，{src}</p>
 </main>
-<footer class="site"><a href="/">← 首页</a><span>某某</span><span></span></footer>
+<footer class="site"><a href="/">← 首页</a><span>Cr's Blog</span><span></span></footer>
 </body>
 </html>
 '''

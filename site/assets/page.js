@@ -23,7 +23,7 @@ if (slug) {
     const i = list.findIndex(p => p.slug === slug), foot = document.querySelector('footer.site');
     if (i < 0 || !foot) continue;
     const prev = list[i - 1], next = list[i + 1];
-    foot.innerHTML = (prev ? `<a href="/posts/${prev.slug}/">← ${prev.title}</a>` : '<a href="/">← 首页</a>') + '<span>某某</span>' + (next ? `<a href="/posts/${next.slug}/">${next.title} →</a>` : '<a href="/">首页 →</a>');
+    foot.innerHTML = (prev ? `<a href="/posts/${prev.slug}/">← ${prev.title}</a>` : '<a href="/">← 首页</a>') + '<span>Cr's Blog</span>' + (next ? `<a href="/posts/${next.slug}/">${next.title} →</a>` : '<a href="/">首页 →</a>');
   }
 }
 
