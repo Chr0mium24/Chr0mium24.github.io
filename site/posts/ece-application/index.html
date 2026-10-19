@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ECE 研究生申请 · Cr's Blog</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-screen-webfont/lxgwwenkaigbscreen.css">
+<link rel="stylesheet" href="/assets/site.css">
+<script type="module" src="/assets/page.js"></script>
+<style>
+  #fig-regions .regions { gap: .35rem; }
+  #fig-regions canvas.when { margin-top: .6rem; }
+  .dims { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(10rem, 100%), 1fr)); gap: .8rem; margin: 1rem 0; }
+  .dims div { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: .6rem .8rem; font-size: .88rem; line-height: 1.65; }
+  .dims b { display: block; font-family: var(--kai); font-weight: 400; font-size: 1.12rem; margin-bottom: .2rem; }
+  .case { border-left: 2px solid var(--line); padding-left: 1rem; margin: 1rem 0; }
+  .case .r { font-size: .9rem; }
+  .case .r em { font-style: normal; color: var(--fig-ok); }
+  .case .r s { color: var(--mute); }
+</style>
+</head>
+<body>
+<header class="site"><a class="name" href="/">Cr's Blog</a><nav><a href="/articles/">文章</a><a href="/essays/">随笔</a><a href="/notes/">速查</a><a href="/tools/">工具</a><a href="/archive/">归档</a></nav></header>
+<main class="post">
+  <div class="kicker"><span>升学</span><span>2025-09-03</span></div>
+  <h1>ECE 研究生申请</h1>
+  <p class="dek">投几个项目、什么时候交、各地看什么：先把规则弄清楚，再谈选校。</p>
+
+  <p>这篇整理电子与计算机工程（ECE）方向的研究生申请：先讲评估申请的三个维度，再讲授课型硕士投几个项目、什么时候交、要准备什么，然后对比各个地区，最后是研究型学位和两个真实的录取案例。</p>
+
+  <h2><span class="n">1</span>三个维度</h2>
+  <p>学校评估一份申请，大致看三样东西，后面每一节都会用到：</p>
+  <div class="dims">
+    <div><b>硬指标</b>申请时已经改不了的客观条件：本科院校背景、专业、GPA、先修课、托福 / 雅思、GRE / GMAT。</div>
+    <div><b>软背景</b>和申请方向相关的经历与成就：专业实习、科研项目、学术竞赛、发表的论文。</div>
+    <div><b>个性化</b>能体现你独特性、热情和思考深度的部分：课外活动、社会实践、志愿者、职业规划，一般在文书和面试里体现。</div>
+  </div>
+
+  <h2><span class="n">2</span>投几个项目</h2>
+  <p>项目不是越多越好，盲目“海投”会成倍地消耗时间和精力。研究生申请按<strong>项目</strong>收费、按项目准备材料：“一个学校的一个专业”算一个项目。</p>
+  <ul>
+    <li><strong>只申英联邦地区</strong>（英国、香港、新加坡、澳洲这些）：申 2–3 个地区，建议投 <strong>6–8 个</strong>项目；申 3–5 个地区，建议投 <strong>8–10 个</strong>。英联邦的录取标准相对统一、透明，主要看硬指标，你的条件能去哪些学校，范围是比较清楚的，没必要多投。</li>
+    <li><strong>地区里有美国</strong>：一共 3–5 个地区（含美国），建议投 <strong>10–12 个</strong>。美国是“综合评估”（holistic review），录取标准复杂，软背景和个性化占比很重，结果的不确定性高。多投是为了对冲风险，把录取的概率提上来。</li>
+  </ul>
+
+  <figure class="play wide" id="fig-regions" data-fig="./regions.js">
+    <div class="fig-head"><span class="fig-no">图 1</span><span>选申请地区：投几个项目、什么时候交</span></div>
+    <div class="fig-body">
+      <div class="fig-main">
+        <canvas class="count" aria-label="建议投的项目数"></canvas>
+        <canvas class="when" aria-label="各地区递交时间"></canvas>
+      </div>
+      <div class="fig-side">
+        <div class="ctl-label">申哪些地区</div>
+        <div class="btns regions"></div>
+        <p class="readout" aria-live="polite"></p>
+      </div>
+    </div>
+    <figcaption>上面绿色的一段是建议投的项目数，只按上面两条规则算，规则没覆盖的组合会直说。下面是常规轮（RD）的递交窗口：澳洲是滚动录取，美国那一行的竖线是理工科最集中的几个截止日。</figcaption>
+  </figure>
+  <p><button class="try" data-target="#fig-regions" data-set='{"regions":["英国","香港"]}'>只申英港</button><button class="try" data-target="#fig-regions" data-set='{"regions":["英国","香港","新加坡","澳洲"]}'>英港新澳全申</button><button class="try" data-target="#fig-regions" data-set='{"regions":["美国","香港","新加坡"]}'>美国 + 港新</button><button class="try" data-target="#fig-regions" data-set='{"regions":["美国"]}'>只申美国</button></p>
+
+  <h2><span class="n">3</span>什么时候交</h2>
+  <p>下面都是常规轮（RD，Regular Decision）的时间。</p>
+  <h3>香港：9–11 月，最早</h3>
+  <p>香港出结果快（4–8 周），但“押金”（留位费）极高，常常是学费的一半甚至全部，可能到十几二十万人民币，而且给你决定的时间很短，通常两周以内。</p>
+  <p>如果香港是首选，务必 9 月就尽早递交。如果还想等英美的 offer，就要仔细排递交时间，别被一笔高额押金“绑住”。</p>
+  <h3>英国、新加坡：10–12 月</h3>
+  <p>英国 G5（牛津、剑桥、帝国理工、UCL、LSE）一般 10 月下旬到 11 月才开放申请系统，而曼大、爱丁堡这些排名靠前的学校可能 8–9 月就开了。建议集中在 10–12 月递交。</p>
+  <h3>美国、加拿大：11 月到次年 1 月</h3>
+  <p>美国理工科最热门的截止日期集中在 <strong>12 月 1 日、12 月 15 日、1 月 15 日、2 月 1 日</strong>。加拿大也集中在年底到第二年年初。</p>
+  <h3>澳洲：滚动录取</h3>
+  <p>拿到五个学期的成绩单就能申，可以很早拿到“有条件录取”（conditional offer）。很适合冲英美名校的人拿来保底：先把一个澳洲 offer 拿在手里，再安心冲别的地区。</p>
+
+  <h2><span class="n">4</span>材料：三大块</h2>
+  <h3>文书：展现自己的核心</h3>
+  <ul>
+    <li><strong>简历（CV）</strong>：浓缩你的学术和实践经历。</li>
+    <li><strong>个人陈述（PS）</strong>：为什么申这个项目、你和它有多匹配、以后打算做什么。</li>
+    <li><strong>推荐信（RL）</strong>：从第三方的角度证明你的学术能力和个人品质。</li>
+    <li><strong>Essays</strong>：很多美国顶尖项目会有额外的“小文书”，题目五花八门，考的是个性化的思考，比如你的职业目标、你能给社区带来什么。</li>
+  </ul>
+  <h3>官方文件：繁琐，但必须提前准备</h3>
+  <ul>
+    <li><strong>证件</strong>：身份证、护照；申香港还要港澳通行证。</li>
+    <li><strong>资产证明</strong>：有些学校申请阶段就要，金额要覆盖第一年的学费加生活费，可能还要求冻结一段时间。</li>
+    <li><strong>学校相关</strong>：中英文成绩单、在读证明（盖章）；<strong>英语教学证明</strong>——港中深同学的关键材料！可以拿它向很多学校申请豁免托福 / 雅思；排名证明（极少数理工科学校要）。</li>
+    <li><strong>考试</strong>：托福 / 雅思、GRE / GMAT 的官方送分。</li>
+    <li><strong>其他</strong>：实习证明、获奖证书；申 HCI、Game Design 这类方向还要作品集。</li>
+  </ul>
+  <h3>学术材料：真实学术能力的体现</h3>
+  <ul>
+    <li><strong>Writing Sample（写作范例）</strong>：一般研究属性强的专业会要。直接从你以前的英文论文作业里截取，<strong>严禁找人代写或翻译</strong>，学校会核查真实性。</li>
+    <li><strong>Research Proposal（研究计划）</strong>：<strong>研究型学位的必备材料</strong>。要讲清楚研究课题、目标、方法、预期成果，格式要求严格，照各校的具体规定写。</li>
+  </ul>
+
+  <h2><span class="n">5</span>各地区对比</h2>
+  <div class="table-wrap wide"><table>
+    <thead><tr><th></th><th>美国</th><th>英国</th><th>香港</th><th>新加坡</th><th>澳洲</th><th>欧洲</th><th>加拿大</th></tr></thead>
+    <tbody>
+      <tr><td><strong>总学费</strong></td><td>40-60w</td><td>25-35w</td><td>15-40w</td><td>25-30w</td><td>25-35w</td><td>depends</td><td>10-40w</td></tr>
+      <tr><td><strong>生活费（每月）</strong></td><td>10-25k</td><td>10-15k</td><td>8-15k</td><td>12-15k</td><td>12-15k</td><td>7-12k</td><td>8-15k</td></tr>
+      <tr><td><strong>GPA</strong></td><td>2.8+/4.0</td><td>G5 3.5+<br>其他 二等一</td><td>3.2+</td><td>3.4+/4.0</td><td>2.5+/4.0</td><td>depends</td><td>3.3+/4.0</td></tr>
+      <tr><td><strong>语言考试</strong></td><td>100/7.0+<br>90/6.5+</td><td>提交时无需</td><td>可免</td><td>90/6.5+</td><td>提交时无需</td><td>90/6.5+</td><td>100/7.0+<br>90/6.5+</td></tr>
+      <tr><td><strong>G类考试</strong></td><td>Optional</td><td>无需</td><td>无需</td><td>大部分无需</td><td>无需</td><td>大部分无需</td><td>大部分无需</td></tr>
+      <tr><td><strong>总结</strong></td><td>资金充裕，看重教育质量和留学体验，希望多尝试就业</td><td>费用居中，申请简单，留学体验好</td><td>省事省钱，排名不错，考虑身份/就业</td><td>(在香港基础上)体验出国</td><td>费用居中，申请简单，留学体验好，移民/低GPA首选</td><td>省钱，考虑工作/移民</td><td>移民</td></tr>
+    </tbody>
+  </table></div>
+  <p>表里 w = 万、k = 千；语言考试一栏是“托福/雅思”的分数。</p>
+
+  <h3>美国：软背景 &gt; 硬指标 &gt; 个性化</h3>
+  <p>美国顶尖名校的逻辑是：<strong>硬指标决定你的申请会不会被认真看（门槛），高质量的软背景决定你的录取上限</strong>。这是唯一一个能靠出色的软背景弥补 GPA 劣势、实现“逆袭”的地区。</p>
+  <p>选校时地理位置很要紧。除了加州和东北部，ECE 的学生可以重点看<strong>德州</strong>（半导体产业的中心）和<strong>北卡罗来纳州</strong>（有著名的三角研究园 Research Triangle Park，企业云集，就业机会多）。</p>
+  <p>还要注意：同一个 ECE 项目下面会分出大量方向（concentrations），比如信号处理、机器人、机器学习，不同方向的录取难度、开的课和招生偏好完全不同。申之前一定要研究清楚，确保背景和所申的方向高度匹配。</p>
+  <h3>英国：硬指标 &gt; 软背景 &gt; 个性化</h3>
+  <p><strong>极度看重硬指标</strong>，对本科院校和 GPA 有明确且严格的“卡线”。官网会列出认可的中国大学名单和对应的分数要求，不达标基本和热门专业无缘；软背景只是锦上添花。</p>
+  <ul>
+    <li><strong>专业按学位独立设置</strong>：比如“通信工程硕士”和“电力系统硕士”是两个完全独立的申请项目，不像美国那样都挂在一个大项目下。</li>
+    <li><strong>语言小分卡得很严</strong>：很多人总分够了，写作或口语小分不够，最后入不了学。即使申请时不用交语言成绩，也要早做准备。</li>
+  </ul>
+  <h3>香港、新加坡、加拿大：硬指标 &gt; 软背景</h3>
+  <p>标准介于英国和美国之间：高度依赖硬指标，但比英国更愿意参考软背景，基本不看个性化。这些地区顶尖大学不多，每年的竞争激烈程度受申请人数影响很大，录取难度起伏也大。强烈建议和英、美、澳这些地区<strong>联合申请</strong>，保证有稳妥的保底。</p>
+  <h3>澳洲：只看硬指标</h3>
+  <p>流程最简单、最透明，录不录取<strong>几乎完全取决于本科院校和 GPA</strong>，对软背景几乎没有要求。GPA 不占优势、又想进世界前 100 的学生，澳洲“八大”性价比极高。</p>
+  <p>要<strong>尽早拿到无条件录取</strong>（unconditional offer）：澳洲学生签证审理周期长（可能要 2–3 个月），最终成绩单、语言成绩这些材料要尽早补齐，换成无条件录取，才能早点启动签证。</p>
+
+  <h2><span class="n">6</span>研究型学位：更像求职</h2>
+  <div class="table-wrap"><table>
+    <thead><tr><th>对比</th><th>研究型（研究型硕士 / 博士）和授课型硕士的差别</th></tr></thead>
+    <tbody>
+      <tr><td><strong>招生本质</strong></td><td>授课型是“申请入学”，研究型更像<strong>“求职”</strong>：不光要满足学校的硬性标准，还得找到一位愿意指导你、并且有经费招你的导师。</td></tr>
+      <tr><td><strong>可预测性</strong></td><td><strong>没法精确定位。</strong>结果高度依赖导师当年的项目、经费、名额，甚至导师和你之间的“化学反应”。有南加州大学（USC）的教授告诉学生，受宏观环境影响，即使是 USC 这样富有的私立学校，今年系里也不招博士生。</td></tr>
+      <tr><td><strong>申请流程</strong></td><td>核心是<strong>“套磁”</strong>（contacting professors）：正式递交前主动给意向导师发邮件，介绍自己的背景和研究兴趣。导师的回应基本决定了成功率。套磁之后通常有面试，面试通过才递交正式申请。</td></tr>
+      <tr><td><strong>申请时间</strong></td><td>平均比授课型<strong>早 1–2 个月</strong>，要给套磁和沟通留足时间。</td></tr>
+      <tr><td><strong>核心材料</strong></td><td>常规材料之外，<strong>Writing Sample</strong> 和 <strong>Research Proposal</strong> 是必需的，用来向导师展示你的学术潜力和研究能力。</td></tr>
+    </tbody>
+  </table></div>
+
+  <h2><span class="n">7</span>两个案例</h2>
+  <div class="case">
+    <h3>案例一：GPA 3.4，偏软硬结合</h3>
+    <p>港中深 ECE，GPA 3.4，托福 105+，GRE 320+，实习 / 科研中等偏上；申软硬结合，偏机器学习 / AI / 机器人。</p>
+    <p class="r">录取：<em>宾夕法尼亚大学（UPenn）、布朗、圣母、港大、港科技、新加坡国立、南洋理工</em>　拒：<s>杜克、哥伦比亚、UCSD</s></p>
+    <ul>
+      <li><strong>英联邦：</strong>3.4 达到了港新名校的门槛，加上不错的软背景，录取在情理之中。</li>
+      <li><strong>UPenn：</strong>宾大虽是顶尖名校，但部分项目明显偏好高托福，这位同学的托福是很大的优势。</li>
+      <li><strong>哥大：</strong>它的 ECE 项目整体非常偏硬件，和软硬结合的背景不完全匹配。</li>
+      <li><strong>UCSD：</strong>申的是 UCSD 的 Capped Major（热门受限专业），竞争异常激烈，对 GPA 要求更高；如果申普通方向，3.2–3.3 都有录取可能。</li>
+    </ul>
+    <p>结论：再次印证了美国申请里“匹配度”比单纯的分数重要得多。</p>
+  </div>
+  <div class="case">
+    <h3>案例二：GPA 3.0，科研不错</h3>
+    <p>港中深 CSE，GPA 3.0，雅思 7.0，GRE 315+，科研背景不错（两年机器人项目经验）；申机器人 / AI。</p>
+    <p class="r">录取：<em>纽约大学（NYU）、波士顿大学（BU）、港中文、港城市</em>　拒：<s>卡内基梅隆（CMU）、范德堡、帝国理工、UCL</s></p>
+    <ul>
+      <li><strong>英国：</strong>3.0 远没到帝国理工、UCL 热门 AI / 机器人专业的硬门槛（通常要 3.5+ 或一等学位），被拒是必然的。</li>
+      <li><strong>香港：</strong>港中深的学生申港中文、港城市，3.0 完全够，认可度高。</li>
+      <li><strong>CMU / 范德堡：</strong>顶尖私立，3.0 在硬指标上缺乏竞争力。</li>
+      <li><strong>NYU / BU：</strong>排名和地理位置都好，对港中深的认可度也高；3.0 加上不错的科研背景成功录取，说明部分美国学校愿意为有亮点的软背景适当放宽 GPA。</li>
+    </ul>
+  </div>
+</main>
+<footer class="site"><a href="/">← 首页</a><span>Cr's Blog</span><span></span></footer>
+</body>
+</html>

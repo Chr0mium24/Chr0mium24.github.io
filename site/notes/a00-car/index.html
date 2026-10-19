@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>5 万以内的电动小车 · Cr's Blog</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-screen-webfont/lxgwwenkaigbscreen.css">
+<link rel="stylesheet" href="/assets/site.css">
+<script type="module" src="/assets/page.js"></script>
+</head>
+<body>
+<header class="site"><a class="name" href="/">Cr's Blog</a><nav><a href="/articles/">文章</a><a href="/essays/">随笔</a><a href="/notes/">速查</a><a href="/tools/">工具</a><a href="/archive/">归档</a></nav></header>
+<main class="post">
+  <div class="kicker"><span>速查</span><span>2025-08-27</span></div>
+  <h1>5 万以内的电动小车</h1>
+  <div class="note-body">
+    <style>
+      .note-body .cars .ctl { grid-template-columns: 3rem 1fr 1.6rem; }
+      .note-body .cars .rank { position: relative; margin-top: .8rem; }
+      .note-body .cars .car { position: absolute; left: 0; right: 0; top: 0; padding: .35rem .5rem .4rem; border-radius: 6px; border: 1px solid var(--line); background: var(--panel); transition: transform .45s cubic-bezier(.2, .7, .2, 1), opacity .3s; }
+      .note-body .cars .car.first { border-color: var(--fig-ok); }
+      .note-body .cars .car.out { opacity: .45; }
+      .note-body .cars .top { display: flex; gap: .5rem; align-items: baseline; font-size: .9rem; line-height: 1.4; }
+      .note-body .cars .top b { font-weight: 600; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .note-body .cars .no { width: 1.1rem; color: var(--mute); font-variant-numeric: tabular-nums; flex: none; }
+      .note-body .cars .ver { font-size: .74rem; color: var(--mute); white-space: nowrap; }
+      .note-body .cars .pts { margin-left: auto; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+      .note-body .cars .bar { height: 6px; margin: .3rem 0 .2rem 1.6rem; background: var(--fig-grid); border-radius: 3px; overflow: hidden; }
+      .note-body .cars .bar i { display: block; height: 100%; background: var(--fig-ok); border-radius: 3px; transition: width .45s; }
+      .note-body .cars .spec { font-size: .74rem; color: var(--ink2); margin-left: 1.6rem; line-height: 1.4; }
+      .note-body .cars .over { margin-top: .5rem; }
+      @media (prefers-reduced-motion: reduce) { .note-body .cars .car, .note-body .cars .bar i { transition: none; } }
+      .note-body .table-wrap table { font-size: .82rem; }
+      .note-body .table-wrap td { min-width: 8.5em; }
+      .note-body .table-wrap td:first-child { min-width: 5.5em; }
+    </style>
+    <p>五款 A00 级电动小车，按你在意的东西重新排：拖四个权重，排名跟着变。</p>
+    <figure class="play cars" id="note-cars" data-fig="/notes/a00-car/rank.js">
+      <div class="fig-body stack">
+        <div class="fig-main">
+          <label class="ctl">价格 <input name="price" type="range" min="0" max="5" step="1"><output for="price"></output></label>
+          <label class="ctl">续航 <input name="range" type="range" min="0" max="5" step="1"><output for="range"></output></label>
+          <label class="ctl">快充 <input name="fast" type="range" min="0" max="5" step="1"><output for="fast"></output></label>
+          <label class="ctl">安全 <input name="safe" type="range" min="0" max="5" step="1"><output for="safe"></output></label>
+          <button type="button" class="toggle over" aria-pressed="false">5 万以上也排</button>
+          <div class="rank"></div>
+          <p class="readout" aria-live="polite"></p>
+        </div>
+      </div>
+      <figcaption>打分只用下表里的数：价格 3 万记满分、7 万记 0；续航 150 km 记 0、400 km 记满分；快充有就是满分；安全按表里的描述分三档：单气囊、双气囊、双气囊且车身轮胎最宽（安全性得分最高）。零跑T03 的价格按“高续航版约 6–7 万”取 6.5 万，安全写的是“安全性好”，按双气囊算。</figcaption>
+    </figure>
+    <p><button class="try" data-target="#note-cars" data-set='{"w":[5,0,0,0]}'>只看价格</button><button class="try" data-target="#note-cars" data-set='{"w":[1,1,5,1]}'>赶时间，要快充</button><button class="try" data-target="#note-cars" data-set='{"w":[1,1,0,5]}'>安全第一</button><button class="try" data-target="#note-cars" data-set='{"w":[0,5,1,1],"over":true}'>预算放开，要续航</button></p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>特性</th><th><strong>奔腾小马</strong></th><th><strong>长安Lumin (糯玉米)</strong></th><th><strong>五菱宏光MINI EV (特指MINI 3)</strong></th><th><strong>熊猫骑士 (吉利熊猫mini)</strong></th><th><strong>零跑T03</strong></th></tr></thead>
+      <tbody>
+        <tr><td><strong>核心优势</strong></td><td><strong>极致性价比</strong>，尤其适合有报废补贴的用户。</td><td><strong>同级最佳操控与安全性</strong>，颜值出众，空间表现好。</td><td><strong>市场销量冠军</strong>，保有量巨大，综合性价比得分最高。</td><td><strong>同级最强快充与智能化配置</strong>。</td><td><strong>越级的续航和配置</strong>，拥有辅助驾驶功能。</td></tr>
+        <tr><td><strong>2024年销量</strong></td><td>45,303台</td><td>144,500台</td><td><strong>248,809台 (销量冠军)</strong></td><td>133,000台</td><td>61,000台 (大部分为高续航版)</td></tr>
+        <tr><td><strong>评测推荐版本</strong></td><td>222闪电马</td><td>205乘风版</td><td>215青春版</td><td>210熊猫骑士版</td><td>未参与0-5万横评，但被推荐</td></tr>
+        <tr><td><strong>参考成交价</strong></td><td><strong>约 ¥37,900</strong></td><td>约 ¥48,900</td><td>约 ¥39,800</td><td>约 ¥46,900</td><td>5万以上，高续航版约6-7万</td></tr>
+        <tr><td><strong>性价比排名</strong></td><td>第3名 (11.87分/万元)</td><td>第4名 (11.45分/万元)</td><td><strong>第1名 (12.8分/万元)</strong></td><td>第2名 (12.0分/万元)</td><td>未参与排名 (价格超出范围)</td></tr>
+        <tr><td><strong>续航与电池</strong></td><td>222km (续航最长之一)，但使用较小众的武汉储能电池。</td><td>205km，国轩高科电池。操控好，车身和轮胎最宽。</td><td>215km，国轩高科/宁福电池，电池技术相对先进。</td><td>210km，国轩高科电池。2025款加宽了轮胎。</td><td><strong>最高403km (续航王)</strong></td></tr>
+        <tr><td><strong>充电</strong></td><td>慢充</td><td>慢充</td><td>慢充</td><td><strong>支持22kW快充 (绝对优势)</strong>，半小时可从30%充至80%。</td><td>支持快充</td></tr>
+        <tr><td><strong>配置亮点</strong></td><td>配置基础，有倒车影像。</td><td>配置均衡，有手机互联、倒车影像等。</td><td>有LED大灯，但屏幕实用性差。</td><td><strong>智能化水平最高</strong>，手机互联体验好，无钥匙进入。</td><td><strong>配置天花板</strong>，拥有车道保持等辅助驾驶功能。</td></tr>
+        <tr><td><strong>安全性</strong></td><td>单安全气囊。</td><td><strong>双安全气囊</strong>，车身/轮胎最宽，安全性得分最高。</td><td>双安全气囊。</td><td>双安全气囊。</td><td>配置高，安全性好。</td></tr>
+        <tr><td><strong>主要短板</strong></td><td>配置简单；无快充；后驱易打滑；方向盘手感偏重。</td><td>横评中价格偏高，影响了性价比得分；车型长久未更新。</td><td>车机屏幕实用性差。</td><td>价格相对较高，优惠少。</td><td>价格和尺寸均超出主流A00级范畴。</td></tr>
+        <tr><td><strong>综合评价</strong></td><td><strong>预算最低之选</strong>：如果预算是首要考虑，尤其有补贴，它是最便宜的选择。</td><td><strong>驾驶体验之选</strong>：如果你在意驾驶感受、操控稳定性和安全性，且喜欢它的外观，它非常值得考虑。</td><td><strong>最稳妥的性价比之选</strong>：巨大的销量证明了其市场认可度，结合价格和产品力，是性价比最高的选择。</td><td><strong>效率与科技之选</strong>：如果你的生活节奏快，对充电速度和智能化有要求，它的快充和科技配置是无与伦比的。</td><td><strong>预算充足的品质之选</strong>：如果你想要一台小车，但又不愿在续航和配置上妥协，零跑T03是唯一的选择。</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+</main>
+<footer class="site"><a href="/notes/">← 速查</a><span>Cr's Blog</span><a href="/">首页 →</a></footer>
+</body>
+</html>

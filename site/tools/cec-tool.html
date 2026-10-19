@@ -1,172 +1,67 @@
 <!doctype html>
 <html lang="zh-CN">
   <head>
-    <base
-      href="https://raw.githubusercontent.com/Chr0mium24/html-manager/content/html-projects/projects/566c133b04864d95813076352f01522c/"
-    />
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>CEC 工具 (时间同步版)</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-screen-webfont/lxgwwenkaigbscreen.css" />
     <script src="https://unpkg.com/html5-qrcode"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
-      body {
-        font-family: -apple-system, sans-serif;
-        background: #f0f2f5;
-        margin: 0;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        padding: 20px;
-        min-height: 100vh;
-        position: relative;
-      }
-      .container {
-        width: 100%;
-        max-width: 500px;
-        background: white;
-        padding: 20px;
-        border-radius: 15px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        box-sizing: border-box;
-        z-index: 2;
-        position: relative;
-      }
+      /* 和主站同一套：米色纸、文楷标题、红色 = 能点 */
+      :root { --bg: #f6f3ea; --panel: #fffdf7; --ink: #26231e; --ink2: #5b564c; --mute: #8b857a; --line: #e0d9c9; --hand: #c92a2a; --ok: #0f8a6a;
+        --kai: 'LXGW WenKai Screen', 'Kaiti SC', serif; --sans: -apple-system, BlinkMacSystemFont, 'PingFang SC', sans-serif; }
+      * { box-sizing: border-box; }
+      body { font: 16px/1.7 var(--sans); background: var(--bg); color: var(--ink); margin: 0; display: flex; flex-direction: column; align-items: center; padding: 20px; min-height: 100vh; position: relative; -webkit-font-smoothing: antialiased; }
+      .home { align-self: stretch; max-width: 500px; width: 100%; margin: 0 auto 14px; font-family: var(--kai); font-size: 1.15rem; letter-spacing: .06em; color: var(--ink); text-decoration: none; }
+      .home:hover { color: var(--hand); }
+      .container { width: 100%; max-width: 500px; background: var(--panel); padding: 22px 22px 18px; border: 1px solid var(--line); border-radius: 12px; z-index: 2; position: relative; }
+      h2 { font-family: var(--kai); font-weight: 400; font-size: 1.6rem; letter-spacing: .04em; margin: 0 0 12px; }
 
-      /* 扫描区域样式 */
-      #reader {
-        width: 100%;
-        border-radius: 10px;
-        overflow: hidden;
-        margin-bottom: 10px;
-        min-height: 0;
-        background: #eee;
-        display: none;
-      }
-      #reader.active {
-        display: block;
-        min-height: 250px;
-      }
+      /* 扫描区域 */
+      #reader { width: 100%; border-radius: 8px; overflow: hidden; margin-bottom: 10px; min-height: 0; background: #efeadd; display: none; }
+      #reader.active { display: block; min-height: 250px; }
 
-      /* 按钮样式 */
-      .btn {
-        display: block;
-        width: 100%;
-        padding: 12px;
-        margin: 10px 0;
-        border: none;
-        border-radius: 8px;
-        font-size: 16px;
-        cursor: pointer;
-        text-align: center;
-        text-decoration: none;
-        transition: background 0.2s;
-      }
-      .btn-primary {
-        background: #007bff;
-        color: white;
-      }
-      .btn-primary:hover {
-        background: #0069d9;
-      }
-      .btn-secondary {
-        background: #6c757d;
-        color: white;
-      }
-      .btn-success {
-        background: #28a745;
-        color: white;
-      }
+      /* 按钮：主按钮实心红，次要的描边 */
+      .btn { display: block; width: 100%; padding: 11px 12px; margin: 10px 0; border: 1px solid color-mix(in srgb, var(--hand) 40%, transparent); border-radius: 999px; font: 15px/1.4 var(--sans); cursor: pointer; background: transparent; color: var(--hand); transition: background .2s, color .2s, border-color .2s; }
+      .btn:hover { border-color: var(--hand); }
+      .btn-success { background: var(--hand); border-color: var(--hand); color: #fff; }
+      .btn-success:hover { background: color-mix(in srgb, var(--hand) 88%, black); }
+      .btn-primary { background: transparent; }
+      .btn-primary:hover { background: color-mix(in srgb, var(--hand) 6%, transparent); }
+      .btn-secondary { color: var(--ink2); border-color: var(--line); }
+      .btn-secondary:hover { color: var(--hand); border-color: var(--hand); }
 
       /* 二维码展示区 */
-      .qr-section {
-        text-align: center;
-        padding: 20px 0;
-        border-bottom: 1px dashed #ccc;
-      }
-      .qr-title {
-        font-size: 14px;
-        color: #666;
-        margin-bottom: 10px;
-        font-weight: bold;
-      }
-      .qr-holder {
-        display: flex;
-        justify-content: center;
-        margin-bottom: 10px;
-      }
-      .token-info {
-        font-size: 12px;
-        color: #666;
-        margin-top: 5px;
-        font-family: monospace;
-      }
+      .qr-section { text-align: center; padding: 18px 0; border-bottom: 1px dashed var(--line); }
+      .qr-title { font-size: 13px; color: var(--mute); margin-bottom: 10px; letter-spacing: .05em; }
+      .qr-holder { display: flex; justify-content: center; margin-bottom: 10px; }
+      .qr-holder img, .qr-holder canvas { border-radius: 6px; }
+      .token-info { font: 12px/1.5 'SF Mono', Menlo, monospace; color: var(--mute); margin-top: 5px; }
 
-      /* 警告框样式 */
-      .alert-warning {
-        background-color: #fff3cd;
-        color: #856404;
-        border: 1px solid #ffeeba;
-        padding: 10px;
-        border-radius: 8px;
-        font-size: 13px;
-        margin-bottom: 15px;
-        display: none; /* 默认隐藏 */
-        text-align: left;
-      }
+      /* 提示框 */
+      .alert-warning { background: color-mix(in srgb, var(--hand) 5%, var(--panel)); color: var(--ink2); border: 1px solid var(--line); border-left: 3px solid var(--hand); padding: 10px 12px; border-radius: 6px; font-size: 13px; margin-bottom: 15px; display: none; text-align: left; }
 
-      /* 进度条样式 (移除CSS动画，改为JS驱动) */
-      .progress-wrapper {
-        width: 180px;
-        height: 6px;
-        background: #eee;
-        border-radius: 3px;
-        margin: 10px auto;
-        overflow: hidden;
-      }
-      .progress-bar {
-        height: 100%;
-        background: #e91e63;
-        width: 0%; /* JS控制 */
-        border-radius: 3px;
-        transition: width 0.1s linear; /* 增加平滑度 */
-      }
+      /* 刷新进度（JS 驱动宽度） */
+      .progress-wrapper { width: 180px; height: 5px; background: #ece6d8; border-radius: 3px; margin: 10px auto; overflow: hidden; }
+      .progress-bar { height: 100%; background: var(--ok); width: 0%; border-radius: 3px; transition: width .1s linear; }
 
-      #file-input {
-        display: none;
-      }
-      .info-text {
-        font-size: 13px;
-        color: #888;
-        margin: 10px 0;
-        text-align: center;
-      }
-      canvas {
-        max-width: 100%;
-      }
+      #file-input { display: none; }
+      .info-text { font-size: 13px; color: var(--mute); margin: 10px 0; text-align: center; }
+      .info-text strong { color: var(--ink2); font-weight: 600; }
+      canvas { max-width: 100%; }
 
-      /* 拖拽遮罩层 */
-      #drag-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 123, 255, 0.9);
-        z-index: 10;
-        display: none;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        color: white;
-        font-size: 24px;
-        font-weight: bold;
-        border: 5px dashed white;
-        box-sizing: border-box;
+      /* 拖拽遮罩 */
+      #drag-overlay { position: fixed; inset: 0; background: rgba(246, 243, 234, .94); z-index: 10; display: none; flex-direction: column; justify-content: center; align-items: center; color: var(--hand); font: 22px/1.5 var(--kai); border: 3px dashed var(--hand); box-sizing: border-box; }
+
+      @media (prefers-reduced-motion: no-preference) {
+        .container { animation: rise .5s cubic-bezier(.2, .7, .2, 1) both; }
+        @keyframes rise { from { opacity: 0; transform: translateY(8px); } }
       }
     </style>
   </head>
   <body>
+    <a class="home" href="/">Cr's Blog</a>
     <!-- 拖拽提示层 -->
     <div id="drag-overlay" style="display: none">
       <div>📂 释放动态二维码图片以识别</div>

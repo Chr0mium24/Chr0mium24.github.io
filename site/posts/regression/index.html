@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>线性回归的五个假设 · Cr's Blog</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-screen-webfont/lxgwwenkaigbscreen.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="/assets/site.css">
+<script type="module" src="/assets/page.js"></script>
+<style>
+  .diag-row { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: .8rem; margin-top: .6rem; }
+  .dx { display: grid; grid-template-columns: 1.3em 3.4em minmax(0, 1fr); gap: .3em; font-size: .84rem; line-height: 1.6; }
+  .dx:first-of-type { margin-top: .5rem; }
+  .dx span:last-child { color: var(--ink2); }
+  .dx b.ok { box-shadow: none; color: var(--fig-ok); }
+  .dx b.bad { text-decoration: none; color: var(--ink); }
+  .mc { font-size: .84rem; color: var(--ink2); margin: .8rem 0 0; padding-top: .7rem; border-top: 1px dashed var(--line); line-height: 1.7; }
+  .mc b.bad { text-decoration: underline wavy color-mix(in srgb, var(--ink) 45%, transparent); text-underline-offset: .25em; }
+  .pair { display: grid; grid-template-columns: 1fr 1fr; gap: .8rem; }
+  @media (max-width: 34rem) { .diag-row, .pair { grid-template-columns: minmax(0, 1fr); } }
+</style>
+</head>
+<body>
+<header class="site"><a class="name" href="/">Cr's Blog</a><nav><a href="/articles/">文章</a><a href="/essays/">随笔</a><a href="/notes/">速查</a><a href="/tools/">工具</a><a href="/archive/">归档</a></nav></header>
+<main class="post">
+  <div class="kicker"><span>统计</span><span>2025-09-12</span></div>
+  <h1>线性回归的五个假设</h1>
+  <p class="dek">OLS 什么时候可信：五个假设各管什么，怎么从残差上看出来，违反了怎么办。</p>
+
+  <p>一元线性回归写成 \(y_i=\beta_0+\beta_1x_i+\varepsilon_i\)。普通最小二乘（OLS）找一条直线，让残差平方和 \(\sum(y_i-b_0-b_1x_i)^2\) 最小，解出来是</p>
+  <p>\[b_1=\frac{\sum(x_i-\bar x)(y_i-\bar y)}{\sum(x_i-\bar x)^2},\qquad b_0=\bar y-b_1\bar x\]</p>
+  <p>这两行公式对任何数据都算得出数。问题是这个数能不能信、它旁边的标准误和 p 值能不能信。通常列的是五条基本假设：</p>
+  <ol>
+    <li><strong>线性关系</strong>：自变量 X 和因变量 Y 之间的关系是线性的。</li>
+    <li><strong>误差项独立</strong>：残差（观测值与模型预测值之差）之间相互独立，不存在自相关。这在处理时间序列数据时尤其重要。</li>
+    <li><strong>同方差</strong>：误差项的方差在所有自变量的取值水平上都是恒定的，也就是说，残差的离散程度不随自变量变化。</li>
+    <li><strong>误差项正态</strong>：模型的残差服从正态分布。</li>
+    <li><strong>无完全多重共线性</strong>：多元回归里，自变量之间不能有（近乎）精确的线性关系。</li>
+  </ol>
+  <p>这五条管的东西不一样，违反了的后果也就不一样。先记住一个分法：</p>
+  <ul>
+    <li>第 1 条坏了，<strong>系数本身</strong>就是歪的；</li>
+    <li>第 2、3、4 条坏了，系数通常还是无偏的，坏的是<strong>标准误、t 检验、置信区间</strong>；</li>
+    <li>第 5 条坏了，系数还是无偏的，但<strong>分不清每个变量各自的作用</strong>。</li>
+  </ul>
+  <p>前三条（加上 \(E[\varepsilon\mid x]=0\) 和满秩）成立时，高斯–马尔可夫定理保证 OLS 是所有线性无偏估计里方差最小的（BLUE）。正态性不在这个定理里，它只在小样本下给 t 和 F 检验兜底。</p>
+
+  <figure class="play wide" id="reg" data-fig="./regress.js">
+    <div class="fig-head"><span class="fig-no">图 1</span><span>40 个点、一条 OLS 直线，和它的残差</span></div>
+    <div class="fig-body">
+      <div class="fig-main">
+        <canvas class="scatter" aria-label="散点和 OLS 直线，点可拖动"></canvas>
+        <div class="diag-row"><canvas class="resid" aria-label="残差对 x"></canvas><canvas class="qq" aria-label="残差的 Q-Q 图"></canvas></div>
+      </div>
+      <div class="fig-side">
+        <div class="ctl-label">给数据加点毛病</div>
+        <div class="btns">
+          <button class="toggle" data-flag="nonlin">非线性</button><button class="toggle" data-flag="auto">自相关</button><button class="toggle" data-flag="hetero">异方差</button><button class="toggle" data-flag="heavy">厚尾</button><button class="toggle" data-flag="outlier">离群点</button>
+        </div>
+        <div class="btns" style="margin-top:.5rem"><button class="btn" data-act="reseed">重抽一组</button></div>
+        <div class="readout" aria-live="polite"></div>
+        <p class="mc"></p>
+      </div>
+    </div>
+    <figcaption>数据按 \(y=1+0.5x+\varepsilon\) 生成，\(x\) 从左到右等距排开，顺序就是时间顺序。开关可以叠着开；每个红点都能拖。右边五行是五项诊断，各用 5% 的检验水平，干净的数据偶尔也会误报一项。最下面一行按当前开关重新生成 400 组数据，看斜率真实的波动有多大、普通标准误报得准不准。</figcaption>
+  </figure>
+
+  <h2><span class="n">1</span>线性关系</h2>
+  <p>模型说 \(y\) 的均值是 \(x\) 的直线函数。真实关系要是弯的，模型将无法准确捕捉变量间的真实关系，拟合效果差，预测结果产生系统性偏差。简单说，就是用直线去拟合曲线，结果必然不准。<button class="try" data-target="#reg" data-set='{"f":{"nonlin":true}}'>开非线性</button></p>
+  <p>散点图上不一定看得出来，残差图上很明显：残差不再围着 0 随机跳，而是两头高、中间低，绿色的滑动平均是一道 U 形。诊断上可以往模型里加一个 \((x-\bar x)^2\) 项，看它显不显著。注意右边“独立”那一行也跟着报警了：弯曲没被模型吃掉，剩在残差里，相邻的残差就都偏向同一边。<strong>DW 报警不一定是时间序列的问题，先排除模型设错了。</strong></p>
+  <p>这里的“线性”指<strong>对参数线性</strong>，不是对 \(x\) 线性。所以解决办法大多还在线性回归的框架里：</p>
+  <ul>
+    <li>对变量做变换，比如取对数 \(\log y\)、开平方，让关系变直；</li>
+    <li>引入自变量的高次项，做多项式回归（\(y=\beta_0+\beta_1x+\beta_2x^2\) 照样是线性回归）；</li>
+    <li>关系复杂时，果断放弃线性模型，改用非线性模型或机器学习模型。</li>
+  </ul>
+  <p>和这条绑在一起的是更深的一个要求：误差的均值不随 \(x\) 变，\(E[\varepsilon\mid x]=0\)。漏掉了一个既影响 \(y\)、又和 \(x\) 相关的变量，效果和设错函数形式一样，系数会系统性地偏。这种偏差残差图看不出来，只能靠对问题本身的理解。</p>
+
+  <h2><span class="n">2</span>误差项独立</h2>
+  <p>同一个序列里，今天的误差偏高、明天大概率也偏高，这就是自相关，在时间序列数据中很常见。它不会让回归系数的估计变得有偏（只要模型里没有滞后的 \(y\)），但会严重影响系数的显著性检验：正自相关时，标准误通常被低估，t 检验和 F 检验失效，一个本不显著的变量看起来变得显著，得出错误的结论。<button class="try" data-target="#reg" data-set='{"f":{"auto":true}}'>开自相关</button></p>
+  <p>为什么会低估？普通标准误的公式默认 40 个点是 40 份互不相关的信息。相邻误差强相关时，实际有效的信息远少于 40 份，公式却还按 40 份算。图里重抽 400 组的那一行最直观：斜率真实的波动比普通 SE 报的大好几倍。</p>
+  <p>诊断：把残差按时间顺序连起来，它不是来回乱跳，而是一大段在 0 上面、一大段在 0 下面。Durbin–Watson 统计量</p>
+  <p>\[DW=\frac{\sum_{t=2}^{n}(e_t-e_{t-1})^2}{\sum_{t=1}^{n}e_t^2}\approx2(1-\hat\rho)\]</p>
+  <p>没有自相关时在 2 附近，正自相关时往 0 掉，负自相关时往 4 走。</p>
+  <p>办法：</p>
+  <ul>
+    <li>在模型中加入滞后项，把前期的观测值作为新的自变量；</li>
+    <li>使用广义最小二乘法（GLS），或者修正标准误，例如 Newey–West 标准误。</li>
+  </ul>
+  <p>Newey–West 在样本小、自相关又强的时候也只能修回来一部分，图里它比普通 SE 大，但仍然偏小。样本只有几十个点时，与其指望修正公式，不如把自相关的结构直接写进模型。</p>
+
+  <h2><span class="n">3</span>同方差</h2>
+  <p>同方差的意思是：无论 \(x\) 取什么值，模型的预测误差的波动范围都应该是大致相同的。典型的反例是收入和消费：收入水平高的人群，消费的波动性通常远大于收入水平低的人群，这就是异方差。<button class="try" data-target="#reg" data-set='{"f":{"hetero":true}}'>开异方差</button></p>
+  <p>后果和自相关类似：OLS 得到的回归系数仍然是无偏的，但不再是最有效的；更重要的是，它会导致标准误的估计不准确，进而让假设检验和置信区间失去可靠性。方向不一定，取决于方差怎么随 \(x\) 变：图里方差在右端最大，而右端恰好是对斜率影响最大的那批点，普通 SE 就偏小了。</p>
+  <p>诊断：残差图是个喇叭口，越往右越散。Breusch–Pagan 检验把残差平方对 \(x\) 回归，看 \(x\) 能不能解释残差的大小。</p>
+  <p>办法：</p>
+  <ul>
+    <li><strong>加权最小二乘（WLS）</strong>：对不同方差的观测值赋予不同的权重，方差小的观测值权重更大；</li>
+    <li><strong>稳健标准误</strong>：系数照旧用 OLS，只修正标准误的算法，比如 White（Huber–White）异方差稳健标准误。图里它和真实波动几乎对上；</li>
+    <li>对因变量做变换，比如取对数，往往能同时稳定方差。</li>
+  </ul>
+
+  <h2><span class="n">4</span>误差项正态</h2>
+  <p>正态性不影响 OLS 是不是无偏、是不是 BLUE，它影响的只是 t 和 F 的分布对不对。样本量足够大时，根据中心极限定理，即使误差项不服从正态分布，系数的估计值也趋于正态分布，影响相对较小；但在小样本情况下，它会影响 t 检验和 F 检验的准确性，因为这些检验都基于正态性假设。<button class="try" data-target="#reg" data-set='{"f":{"heavy":true}}'>开厚尾</button></p>
+  <p>诊断：Q-Q 图把标准化残差和正态分布的分位数一一对着画，正态的话点落在蓝色对角线上。厚尾时两端翘出去，左下角往下、右上角往上。Jarque–Bera 检验看的是偏度和峰度离正态差多远。</p>
+  <p>办法：样本大时通常可以不管；样本小、尾巴又厚时，用 bootstrap 做置信区间，或者换对极端值不那么敏感的稳健回归。</p>
+
+  <h2><span class="n">5</span>多重共线性</h2>
+  <p>完全共线（比如 \(x_2=2x_1\)）时，方程组没有唯一解，系数根本定不下来。实际碰到更多的是高度相关：系数的估计方差变得非常大，模型变得不稳定。样本数据的微小变动都可能导致系数剧烈变化，甚至正负号反转，我们无法准确解释每个自变量对因变量的独立贡献。但值得注意的是，多重共线性并不会影响模型的整体预测能力。</p>
+  <p>方差放大了多少有个现成的式子。第 \(j\) 个系数的方差</p>
+  <p>\[\operatorname{Var}(b_j)=\frac{\sigma^2}{\sum(x_{ij}-\bar x_j)^2}\cdot\frac{1}{1-R_j^2}\]</p>
+  <p>\(R_j^2\) 是拿 \(x_j\) 对其他自变量回归的 \(R^2\)。后面那个因子就是方差膨胀因子 \(\text{VIF}_j=1/(1-R_j^2)\)，经验上超过 10 就要当心。两个自变量时 \(R_j^2=\rho^2\)。</p>
+
+  <figure class="play wide" id="col" data-fig="./collin.js">
+    <div class="fig-head"><span class="fig-no">图 2</span><span>\(y=x_1+x_2+\varepsilon\)：两个自变量越像，单个系数越飘</span></div>
+    <div class="fig-body">
+      <div class="fig-main"><div class="pair"><canvas class="xs" aria-label="一组样本的 x1 和 x2"></canvas><canvas class="bs" aria-label="300 组系数估计"></canvas></div></div>
+      <div class="fig-side">
+        <label class="ctl">相关 ρ <input name="rho" type="range" min="0" max="0.995" step="0.005"><output for="rho"></output></label>
+        <p class="readout" aria-live="polite"></p>
+      </div>
+    </div>
+    <figcaption>每组 50 个点，真值 \(b_1=b_2=1\)，噪声标准差 1。拖滑块改两个自变量的相关系数 ρ；每组样本用的随机数是固定的，所以点云是连续变形的。右边每个绿点是一组样本拟合出的 \((b_1,b_2)\)。</figcaption>
+  </figure>
+
+  <p>ρ 一大，右边的点云沿着虚线 \(b_1+b_2=2\) 拉成一根长条：数据只能告诉你“两个加起来是 2”，分不清谁是谁。<button class="try" data-target="#col" data-set='{"rho":0}'>ρ = 0</button><button class="try" data-target="#col" data-set='{"rho":0.9}'>ρ = 0.9</button><button class="try" data-target="#col" data-set='{"rho":0.99}'>ρ = 0.99</button>和长条垂直的方向反而越来越窄，这就是“预测能力不受影响”。</p>
+  <p>办法：</p>
+  <ul>
+    <li><strong>删除变量</strong>：移除一个或多个高度相关的变量，但可能损失信息；</li>
+    <li><strong>变量变换</strong>：用主成分分析（PCA）等降维方法，把相关的变量组合成少数几个不相关的主成分；</li>
+    <li><strong>正则化</strong>：岭回归（Ridge）或 LASSO，在损失函数里加惩罚项，用一点偏差换方差大幅下降。</li>
+  </ul>
+  <p>要是只关心预测，共线性可以不管。要解释“每个变量的作用”，它才是问题。</p>
+
+  <h2><span class="n">6</span>不在五条里的：离群点</h2>
+  <p>最小二乘罚的是残差的<strong>平方</strong>，离得远的点罚得特别狠，直线会被它拽过去。尤其是 \(x\) 也在边上的点（杠杆高），一个就够把斜率拽歪。<button class="try" data-target="#reg" data-set='{"f":{"outlier":true}}'>开离群点</button>图里圈出来的就是它，重抽 400 组那一行能看到斜率的平均值整体被拽低了。也可以直接拖任意一个红点，看直线跟着动。</p>
+  <p>衡量一个点有多大影响，常用 Cook 距离：去掉这个点，拟合值总共变了多少。</p>
+  <p>\[D_i=\frac{e_i^2}{p\,s^2}\cdot\frac{h_{ii}}{(1-h_{ii})^2}\]</p>
+  <p>\(h_{ii}\) 是杠杆，\(p\) 是参数个数。残差大、杠杆也高，\(D_i\) 才大；超过 0.5 值得单独看一眼，超过 1 通常就是强影响点。处理顺序是：先查是不是录错了；是真数据就别随手删，可以用 Huber 这类稳健回归，或者把去掉它前后的结果都报出来。</p>
+
+  <h2><span class="n">7</span>一张表</h2>
+  <p>点一行，图 1 换成那种情况：</p>
+  <div class="table-wrap"><table>
+    <thead><tr><th>违反了</th><th>系数</th><th>标准误 / 检验</th><th>怎么看</th><th>怎么办</th></tr></thead>
+    <tbody>
+      <tr data-target="#reg" data-set='{"f":{"nonlin":true}}'><td>线性</td><td>有偏</td><td>跟着错</td><td>残差 U 形，加二次项显著</td><td>变换、多项式、换模型</td></tr>
+      <tr data-target="#reg" data-set='{"f":{"auto":true}}'><td>独立</td><td>无偏</td><td>通常低估</td><td>残差成段，DW 离 2 远</td><td>滞后项、GLS、Newey–West</td></tr>
+      <tr data-target="#reg" data-set='{"f":{"hetero":true}}'><td>同方差</td><td>无偏，不再最优</td><td>不准</td><td>喇叭口，BP 检验</td><td>WLS、稳健标准误、取对数</td></tr>
+      <tr data-target="#reg" data-set='{"f":{"heavy":true}}'><td>正态</td><td>无偏</td><td>小样本不准</td><td>Q-Q 两端翘，JB 检验</td><td>大样本不管，bootstrap</td></tr>
+      <tr data-target="#col" data-set='{"rho":0.99}'><td>无共线</td><td>无偏，方差大</td><td>很大，符号乱跳</td><td>VIF &gt; 10</td><td>删变量、PCA、岭回归</td></tr>
+      <tr data-target="#reg" data-set='{"f":{"outlier":true}}'><td>（离群点）</td><td>被拽歪</td><td>跟着错</td><td>Cook 距离</td><td>查数据、稳健回归</td></tr>
+    </tbody>
+  </table></div>
+  <p>回到干净的数据：<button class="try" data-target="#reg" data-set='{"f":{},"seed":130}'>全部关掉</button></p>
+</main>
+<footer class="site"><a href="/">← 首页</a><span>Cr's Blog</span><a href="/">首页 →</a></footer>
+</body>
+</html>

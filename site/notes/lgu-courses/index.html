@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>港中深课程评价与校历 · Cr's Blog</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-screen-webfont/lxgwwenkaigbscreen.css">
+<link rel="stylesheet" href="/assets/site.css">
+<script type="module" src="/assets/page.js"></script>
+</head>
+<body>
+<header class="site"><a class="name" href="/">Cr's Blog</a><nav><a href="/articles/">文章</a><a href="/essays/">随笔</a><a href="/notes/">速查</a><a href="/tools/">工具</a><a href="/archive/">归档</a></nav></header>
+<main class="post">
+  <div class="kicker"><span>速查</span><span>2025-09-01</span></div>
+  <h1>港中深课程评价与校历</h1>
+  <div class="note-body">
+    <style>
+      .note-body h3 { font-size: 1rem; margin: 1.4rem 0 .3rem; }
+      .note-body .lgu-links { padding-left: 1.2em; }
+      .note-body .lgu-links li { overflow-wrap: anywhere; }
+      .note-body .codes { font: .84rem var(--mono); color: var(--ink2); }
+      .note-body .cal .pick { display: flex; flex-wrap: wrap; gap: .4rem; align-items: center; margin-top: .6rem; }
+      .note-body .cal input[type=date] { font: .86rem var(--mono); border: 1px solid color-mix(in srgb, var(--hand) 35%, transparent); background: #fff; color: var(--ink); border-radius: 6px; padding: .15rem .4rem; }
+      .note-body .cal input[type=date]:focus { outline: 2px solid color-mix(in srgb, var(--hand) 30%, transparent); border-color: var(--hand); }
+      .note-body .cal .pick .btn { font-size: .78rem; }
+    </style>
+    <h3>课程评价和修读计划</h3>
+    <ul class="lgu-links">
+      <li><a href="https://blankspace.feishu.cn/share/base/view/shrcnctnLSH9AJM4DCkEYaOC1ue">课程评价1</a></li>
+      <li><a href="https://docs.qq.com/sheet/DT051WFNtRkx2cEJy">课程评价2</a></li>
+      <li><a href="https://registry.cuhk.edu.cn/sites/default/files/2025-09/Study%20Scheme%20-%20ECE_2024-25_3rd%282025%29_20250714.pdf">ECE课程修读计划2025.10.26更新</a></li>
+      <li><a href="https://registry.cuhk.edu.cn/sites/default/files/2025-05/Annex%202%20Calendar%20View%20of%20Academic%20Calendar%202025-26%20%28Tentative%29-Revised%20to%20Website%20-Updated%20Version-FINAL-PDF.pdf">2025-2026校历</a></li>
+    </ul>
+    <p class="codes">CSC3100, ECE1811, 2001, 2050, 2811, 3001, 3080, 3810, 4010, ERG4901</p>
+
+    <h3>2025–26 校历</h3>
+    <figure class="play cal" id="note-cal" data-fig="/notes/lgu-courses/cal.js">
+      <div class="fig-body stack">
+        <div class="fig-main">
+          <canvas aria-label="2025–26 校历时间线"></canvas>
+          <div class="pick"><button type="button" class="btn" data-step="-7">−7 天</button><button type="button" class="btn" data-step="-1">−1</button><input type="date" aria-label="选一天"><button type="button" class="btn" data-step="1">+1</button><button type="button" class="btn" data-step="7">+7 天</button></div>
+          <p class="readout" aria-live="polite"></p>
+        </div>
+      </div>
+      <figcaption>横轴从 2025 年 8 月底到 2026 年 7 月底。蓝色是授课的日子（学期开始到最后授课日），黑色是考试周，绿色是假期和补课，灰色是加选/退选。拖红线选一天。</figcaption>
+    </figure>
+    <p><button class="try" data-target="#note-cal" data-set='{"day":"2025-12-01"}'>期末前两周</button><button class="try" data-target="#note-cal" data-set='{"day":"2026-02-15"}'>过年中</button><button class="try" data-target="#note-cal" data-set='{"day":"2026-05-20"}'>第二学期考完</button></p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>日期</th><th>事项</th></tr></thead>
+      <tbody>
+        <tr data-target="#note-cal" data-set='{"day":"2025-08-31"}'><td>8月31日 (周日)</td><td>第一学期加选/退选</td></tr>
+        <tr data-target="#note-cal" data-set='{"day":"2025-09-12"}'><td>9月1日～12日 (周一～周五)</td><td>第一学期加选/退选</td></tr>
+        <tr data-target="#note-cal" data-set='{"day":"2025-09-01"}'><td>9月1日 (周一)</td><td>第一学期开始</td></tr>
+        <tr data-target="#note-cal" data-set='{"day":"2025-09-28"}'><td>9月28日 (周日)</td><td>补课：周三的课程</td></tr>
+        <tr data-target="#note-cal" data-set='{"day":"2025-10-01"}'><td>10月1日～8日 (周三～周三)</td><td>公共假期：国庆节、中秋节</td></tr>
+        <tr data-target="#note-cal" data-set='{"day":"2025-12-12"}'><td>12月12日 (周五)</td><td>第一学期最后授课日</td></tr>
+        <tr data-target="#note-cal" data-set='{"day":"2025-12-14"}'><td>12月14日～21日 (周日～周日)</td><td>第一学期科目考试</td></tr>
+        <tr data-target="#note-cal" data-set='{"day":"2026-01-03"}'><td>1月3日～16日 (周六～周五)</td><td>第二学期加选/退选</td></tr>
+        <tr data-target="#note-cal" data-set='{"day":"2026-01-05"}'><td>1月5日 (周一)</td><td>第二学期开始</td></tr>
+        <tr data-target="#note-cal" data-set='{"day":"2026-02-09"}'><td>2月9日～28日 (周一～周六)</td><td>农历新年假期</td></tr>
+        <tr data-target="#note-cal" data-set='{"day":"2026-03-01"}'><td>3月1日 (周日)</td><td>农历新年假期</td></tr>
+        <tr data-target="#note-cal" data-set='{"day":"2026-04-05"}'><td>4月5日 (周日)</td><td>清明节</td></tr>
+        <tr data-target="#note-cal" data-set='{"day":"2026-05-01"}'><td>5月1日 (周五)</td><td>劳动节</td></tr>
+        <tr data-target="#note-cal" data-set='{"day":"2026-05-08"}'><td>5月8日 (周五)</td><td>第二学期最后授课日</td></tr>
+        <tr data-target="#note-cal" data-set='{"day":"2026-05-09"}'><td>5月9日～16日 (周六～周六)</td><td>第二学期科目考试</td></tr>
+        <tr data-target="#note-cal" data-set='{"day":"2026-05-30"}'><td>5月30日～31日 (周六～周日)</td><td>暑期课程加选/退选</td></tr>
+        <tr data-target="#note-cal" data-set='{"day":"2026-06-05"}'><td>6月1日～5日 (周一～周五)</td><td>暑期课程加选/退选</td></tr>
+        <tr data-target="#note-cal" data-set='{"day":"2026-06-01"}'><td>6月1日 (周一)</td><td>暑期课程开始</td></tr>
+        <tr data-target="#note-cal" data-set='{"day":"2026-06-19"}'><td>6月19日 (周五)</td><td>端午节</td></tr>
+        <tr data-target="#note-cal" data-set='{"day":"2026-07-17"}'><td>7月17日 (周五)</td><td>暑期课程最后授课日</td></tr>
+        <tr data-target="#note-cal" data-set='{"day":"2026-07-20"}'><td>7月20日～22日 (周一～周三)</td><td>暑期课程科目考试</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+</main>
+<footer class="site"><a href="/notes/">← 速查</a><span>Cr's Blog</span><a href="/">首页 →</a></footer>
+</body>
+</html>

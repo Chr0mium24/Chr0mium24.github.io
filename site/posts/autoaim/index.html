@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>RoboMaster 自瞄：从数据到解算 · Cr's Blog</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-screen-webfont/lxgwwenkaigbscreen.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="/assets/site.css">
+<script type="module" src="/assets/page.js"></script>
+<style>
+  .pair-panels { display: grid; grid-template-columns: 1fr 1fr; gap: .8rem; }
+  .pair-panels .cap { font-size: .76rem; color: var(--mute); text-align: center; margin-top: .2rem; }
+  #fig-al canvas.curve { margin-top: .8rem; }
+  .chain { display: flex; flex-wrap: wrap; gap: .3rem .5rem; align-items: center; font-size: .9rem; margin: 1rem 0; }
+  .chain span { border: 1px solid var(--line); background: var(--panel); border-radius: 6px; padding: .1rem .55rem; }
+  .chain i { color: var(--mute); font-style: normal; }
+</style>
+</head>
+<body>
+<header class="site"><a class="name" href="/">Cr's Blog</a><nav><a href="/articles/">文章</a><a href="/essays/">随笔</a><a href="/notes/">速查</a><a href="/tools/">工具</a><a href="/archive/">归档</a></nav></header>
+<main class="post">
+  <div class="kicker"><span>RoboMaster</span><span>2025-09-13</span></div>
+  <h1>RoboMaster 自瞄：从数据到解算</h1>
+  <p class="dek">检测框只回答“大概在哪”。要打得准，得从数据一路做到解算。</p>
+
+  <p>RoboMaster 的自瞄系统，最核心的两个指标是<strong>检测速度</strong>和<strong>定位精度</strong>。很多方案止步于拿现成的模型（比如 YOLO 系列）训一训，但这只解决了目标“在哪里”的粗略问题。竞赛级的自瞄是一整条工程链路：数据怎么来、模型怎么训、怎么压到车载算力上实时跑、检测框又怎么变成能拿去算弹道的三维坐标。</p>
+  <div class="chain"><span>主动学习攒数据</span><i>→</i><span>细粒度优化训教师</span><i>→</i><span>知识蒸馏压成学生</span><i>→</i><span>传统视觉精修 + PnP</span></div>
+  <p>下面一段一段讲，每一段都是上一段的输入。</p>
+
+  <h2><span class="n">1</span>数据：让模型自己挑要标的图</h2>
+  <p>目标是用最少的人工标注，攒出一个信息量最大的数据集——也就是模型最难认对的那些样本。</p>
+  <p>办法是<strong>主动学习</strong>（active learning）：与其随机地、被动地标海量数据，不如让模型自己指出它最“拿不准”的样本，人只标这些，标完再拿去训下一轮。同样的标注量，每一张都花在刀刃上。</p>
+  <h3>不确定性怎么量：香农熵</h3>
+  <p>模型对一个目标的分类输出是一个概率分布 \(p=(p_1,\dots,p_K)\)。它的熵</p>
+  <p>\[H(p)=-\sum_{i=1}^{K}p_i\log p_i\]</p>
+  <p>在分布最尖的时候最小：模型非常确定是“3 号英雄”，输出像 \([0.01,0.01,0.97,\dots]\)，熵接近 0，说明这类样本它已经认识了。分布最平的时候最大：输出像 \([0.15,0.12,0.18,\dots]\)，熵接近上限 \(\log K\)，这正是模型的知识盲区，也是最值得标的数据。</p>
+  <h3>一轮一轮地转</h3>
+  <ol>
+    <li><strong>起始数据集。</strong>人工标一个小数据集（比如 500–1000 张），覆盖赛场上的基本情况：不同光照、不同角度、不同背景下的各种机器人装甲板。类别用 one-hot 编码：每类一个向量，只有正确类别那一位是 1。</li>
+    <li><strong>训一个采样模型。</strong>用起始集训一个轻量模型（比如 YOLOv5n），拿它去推理一大池没标注的图。</li>
+    <li><strong>算熵、挑前 K 个。</strong>每个预测框算一个熵，挑熵最高的 Top-K。</li>
+    <li><strong>只标这 K 个</strong>，并进训练集，重新训一个更强的模型，回到第 2 步。</li>
+  </ol>
+  <p>图 1 是这个循环的二维缩小版：两类点（当成 3 号和 4 号）弯成两个月牙，模型是一个带三次多项式特征的逻辑回归。左右两边从同一个 4 张图的起始集出发，左边每轮随机挑，右边每轮挑熵最高的。</p>
+
+  <figure class="play wide" id="fig-al" data-fig="./boundary.js">
+    <div class="fig-head"><span class="fig-no">图 1</span><span>同样的标注预算：随机挑 vs 挑模型最拿不准的</span></div>
+    <div class="fig-body">
+      <div class="fig-main">
+        <div class="pair-panels">
+          <div><canvas class="rand" aria-label="随机采样训练出的模型"></canvas><div class="cap">随机采样</div></div>
+          <div><canvas class="al" aria-label="主动学习训练出的模型"></canvas><div class="cap">主动学习（挑熵最高）</div></div>
+        </div>
+        <canvas class="curve" aria-label="准确率随标注数变化"></canvas>
+      </div>
+      <div class="fig-side">
+        <label class="ctl">标注预算 <input name="n" type="range" min="0" max="23" step="1"><output for="n"></output></label>
+        <div class="ctl-label">每轮挑几张</div>
+        <div class="seg k"><button value="1">1</button><button value="5">5</button><button value="10">10</button></div>
+        <div class="ctl-label">数据</div>
+        <div class="btns"><button class="btn reseed">换一批数据</button></div>
+        <p class="readout" aria-live="polite"></p>
+      </div>
+    </div>
+    <figcaption>蓝点和深色点是标注过的两类，灰色小点是还没标的数据池；底色越灰，模型在那里越拿不准（熵越高），黑线是决策边界，绿圈是这一轮新挑的点。下面灰线是随机、绿线是主动学习在独立测试集上的准确率，拖红线改预算。</figcaption>
+  </figure>
+
+  <p>拖着看几处：<button class="try" data-target="#fig-al" data-set='{"n":4}'>只有起始集</button><button class="try" data-target="#fig-al" data-set='{"n":24}'>标到 24 张</button><button class="try" data-target="#fig-al" data-set='{"k":1,"n":20}'>每轮只挑 1 张</button><button class="try" data-target="#fig-al" data-set='{"seed":12345,"n":34}'>换一批数据</button></p>
+  <p>主动学习挑中的点几乎全贴着边界：那是模型唯一会犯错的地方。随机挑的点大多落在两个月牙的中间，模型早就有把握，标了也学不到多少新东西——读数里两边挑中样本的平均熵差得很远。所以同样的预算，右边的边界更早贴合真实的形状，准确率更早到顶。</p>
+  <p>也有要小心的地方：挑出来的样本不再是随机的，起始集要是太偏，模型可能一直在一条错误的边界附近反复挑。起始集覆盖得广一些、每轮混一点随机样本，都能缓解这个问题。检测任务里一张图有好几个框，可以取框熵的最大值或平均值当这张图的分数。</p>
+
+  <h2><span class="n">2</span>模型：为细粒度识别调结构</h2>
+  <p>这一步的目标是训一个精度尽可能高的<strong>教师模型</strong>，作为后面压缩的性能基准。</p>
+  <h3>分辨率比深度更要紧</h3>
+  <p>区分“3 号”和“4 号”装甲板属于<strong>细粒度图像分类</strong>：类别之间差得很少，关键信息都在局部细节上。对这类任务，较高的输入分辨率比更深、更宽的网络更关键——高分辨率保住了纹理和细节，而网络太深，逐级下采样反倒可能把这些细节丢掉。</p>
+  <p>我们选择了一个中等规模的网络（如YOLOv5l/x），并减小其深度与宽度参数，同时显著增大了训练和推理的输入分辨率（例如从640x640提升至800x800）。这一调整在基本不增加模型GFLOPs（计算量）的前提下，显著提升了模型对装甲板数字和细节的辨识能力。</p>
+  <p>账大致是这样算的：卷积的计算量和输入的像素数成正比，从 640 到 800，像素多了 \((800/640)^2\approx1.56\) 倍；把宽度系数调小（计算量大约随宽度的平方下降）、层数减少，就能把这部分涨出来的计算量抵回去。</p>
+  <h3>标签平滑：别让模型太自信</h3>
+  <p>one-hot 硬标签会把模型往“非 0 即 1”的极端预测上推，模型过分相信自己，遇到稍有不同的新数据，泛化就变差。<strong>标签平滑</strong>（label smoothing）把硬标签软化：正确类别给 \(1-\varepsilon\)，剩下的 \(\varepsilon\) 平分给其他类别。三类、\(\varepsilon=0.1\) 时，\([0,1,0]\) 变成 \([0.05,0.9,0.05]\)。</p>
+  <p>这在训练里引入了一种正则：相当于告诉模型“这个目标大概率是 A，但别完全排除是 B 或 C”。学出来的决策边界更平滑、类间距离更大，泛化更好。（也有写成 \(\varepsilon/K\) 平分给所有类别的版本，效果差不多。）</p>
+  <h3>Grad-CAM：看模型到底在看哪</h3>
+  <p>神经网络是个黑箱：它把英雄机器人认成前哨站的时候，很难知道问题出在哪。<strong>Grad-CAM</strong>（梯度加权类激活映射）用某一类得分对最后一层卷积特征的梯度给各通道加权，叠出一张热力图，显示图像里哪些区域对这次分类贡献最大。</p>
+  <p>通过分析，我们发现模型有时会将“前哨站周边的墙体纹理”与“前哨站装甲板”错误关联，形成了“背景偏见”。这一发现直接指导了我们在数据集中补充更多具有挑战性背景的负样本。</p>
+
+  <h2><span class="n">3</span>压缩：知识蒸馏</h2>
+  <p>大模型准，但车上的嵌入式设备跑不动。目标是在不明显损失精度的前提下，把教师的能力迁移到一个能实时推理的轻量<strong>学生模型</strong>上。</p>
+  <p><strong>知识蒸馏</strong>的核心，是让学生不光学训练数据的“标准答案”（硬标签），还要学教师推理时输出的“思考过程”（软标签）。教师的输出分布里藏着它对类别之间相似程度的理解——3 号和 4 号有多像、和哨兵差多远——这部分信息叫“暗知识”。</p>
+  <h3>损失函数：两部分加起来</h3>
+  <p>训练学生（比如 YOLOv5n）时，分类部分的损失由两项组成：学生和真实标签之间的标准损失，加上学生和教师（比如 YOLOv5x）软标签之间的蒸馏损失。常见的写法是用温度 \(T\) 把两边的 softmax 都调软，再算 KL 散度：</p>
+  <p>\[\mathcal L=(1-\alpha)\,\mathcal L_{\text{CE}}\big(y,\,p_s\big)+\alpha\,T^2\,\mathrm{KL}\big(p_t^{(T)}\,\big\|\,p_s^{(T)}\big),\qquad p^{(T)}=\mathrm{softmax}(z/T)\]</p>
+  <p>\(T\) 越大，分布越平，次要类别之间的相对大小（暗知识）越明显；乘 \(T^2\) 是为了让两项的梯度量级相当。</p>
+  <h3>助教：教师和学生差太多的时候</h3>
+  <p>教师和学生的能力差距太大时（比如 YOLOv5x 对 YOLOv5n），直接蒸馏效果有限。我们引入了<strong>助教蒸馏</strong>（teacher assistant distillation）：</p>
+  <div class="chain"><span>教师 YOLOv5x</span><i>→</i><span>助教 YOLOv5m</span><i>→</i><span>学生 YOLOv5n</span></div>
+  <p>先用教师蒸馏一个中等大小的助教，再用助教去蒸馏最终的学生。助教像个“翻译”，把复杂的知识一级一级简化，学生吸收起来更有效。</p>
+  <h3>特征级蒸馏：连解题步骤一起学</h3>
+  <p>除了对齐最后的输出层，我们还强迫学生去模拟教师中间卷积层的特征图（feature map）。两边通道数不一样，就在学生后面接一个 1×1 卷积 \(r(\cdot)\) 对齐，再最小化 \(\big\|r(F_s)-F_t\big\|_2^2\)。学生不只模仿老师的答案，还模仿它的“解题步骤”，从更深的层次复现教师的行为。</p>
+
+  <h2><span class="n">4</span>解算：把框变成三维坐标</h2>
+  <p>神经网络给的是一个粗略的边界框，弹道解算要的是像素级精确的特征点和三维位置。这一段交给传统图像处理，在检测框（ROI）里精修。</p>
+  <h3>灯条颜色：两种方法一起用</h3>
+  <ul>
+    <li><strong>HSV 阈值分割：</strong>近距离、光照好的时候，能把特定颜色的像素干净地分出来。</li>
+    <li><strong>RGB 通道相减：</strong>比如“蓝通道 − 红通道”，能放大蓝色灯条和背景的对比，远距离或有颜色干扰时更稳。</li>
+  </ul>
+  <p>系统根据目标距离等参数，动态选择或融合两种结果。</p>
+  <h3>抗过曝的特征点：灰度重心</h3>
+  <p>灯条最亮的部分经常过曝（像素值顶到 255），边缘糊成一片，传统的轮廓提取、角点检测就不灵了。办法是不找几何边缘，而是算灯条区域里所有像素的<strong>灰度重心</strong>——以每个像素的灰度值 \(I(x,y)\) 作为它坐标的权重，求加权平均：</p>
+  <p>\[\bar x=\frac{\sum I(x,y)\,x}{\sum I(x,y)},\qquad \bar y=\frac{\sum I(x,y)\,y}{\sum I(x,y)}\]</p>
+  <p>高光溢出只是把中间一片削平，重心几乎不动；单个噪点在成百上千个像素的加权平均里也被摊薄了。这个“亮度中心点”是非常稳定的二维特征点。</p>
+  <h3>PnP：从特征点到位姿</h3>
+  <p>把灰度重心法得到的稳定二维特征点，和装甲板的真实物理尺寸（三维模型）一起交给 <strong>PnP</strong>（Perspective-n-Point），就能解出装甲板在相机坐标系下的三维位置和姿态 \((R,\,t)\)：</p>
+  <p>\[s\begin{pmatrix}u\\v\\1\end{pmatrix}=K\,\big(R\,X_w+t\big)\]</p>
+  <p>\(K\) 是标定好的相机内参，\(X_w\) 是这些特征点在装甲板上的三维坐标，\((u,v)\) 是它们在图像里的位置。OpenCV 的 <code>solvePnP</code> 直接能解；这些点都在装甲板这一个平面上，可以用专门处理平面目标的 IPPE 方法。解出来的 \(t\) 就是后面弹道预测的输入。</p>
+
+  <h2><span class="n">5</span>链路比单点重要</h2>
+  <p>回头看这一整条：主动学习让数据高效迭代，细粒度优化打出强教师，多级蒸馏把能力迁移到轻量模型，最后用传统视觉算法把网络的输出精修到像素级。整个链路证明，系统的综合性能取决于每个环节的技术深度与协同，远超单一追求模型评价指标（如mAP）所能达到的高度。</p>
+</main>
+<footer class="site"><a href="/">← 首页</a><span>Cr's Blog</span><span></span></footer>
+</body>
+</html>

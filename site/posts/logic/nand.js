@@ -1,4 +1,4 @@
-// 图：只用 NAND 搭门。点红色开关 A / B（或点真值表的行），信号沿线走：绿 = 1，灰 = 0。
+// 图：只用 NAND 搭门（NOT、AND、OR、NOR、XOR）。点红色开关 A / B（或点真值表的行），信号沿线走：绿 = 1，灰 = 0。
 import { palette, canvas2d, onResize, flash, seg } from '/assets/fig.js';
 
 const nand = (a, b) => (a && b) ? 0 : 1;
@@ -7,6 +7,7 @@ export const CIRCUITS = {
   NOT: { inputs: ['A'], gates: [{ id: 'g1', x: 52, y: 30, in: ['A', 'A'] }], out: 'g1', want: (a) => a ? 0 : 1, f: 'NOT A' },
   AND: { inputs: ['A', 'B'], gates: [{ id: 'g1', x: 40, y: 30, in: ['A', 'B'] }, { id: 'g2', x: 70, y: 30, in: ['g1', 'g1'] }], out: 'g2', want: (a, b) => a & b, f: 'A AND B' },
   OR: { inputs: ['A', 'B'], gates: [{ id: 'g1', x: 38, y: 17, in: ['A', 'A'] }, { id: 'g2', x: 38, y: 43, in: ['B', 'B'] }, { id: 'g3', x: 70, y: 30, in: ['g1', 'g2'] }], out: 'g3', want: (a, b) => a | b, f: 'A OR B' },
+  NOR: { inputs: ['A', 'B'], gates: [{ id: 'g1', x: 30, y: 17, in: ['A', 'A'] }, { id: 'g2', x: 30, y: 43, in: ['B', 'B'] }, { id: 'g3', x: 55, y: 30, in: ['g1', 'g2'] }, { id: 'g4', x: 79, y: 30, in: ['g3', 'g3'] }], out: 'g4', want: (a, b) => (a | b) ^ 1, f: 'A NOR B' },
   XOR: { inputs: ['A', 'B'], gates: [{ id: 'g1', x: 33, y: 30, in: ['A', 'B'] }, { id: 'g2', x: 57, y: 16, in: ['A', 'g1'] }, { id: 'g3', x: 57, y: 44, in: ['g1', 'B'] }, { id: 'g4', x: 81, y: 30, in: ['g2', 'g3'] }], out: 'g4', want: (a, b) => a ^ b, f: 'A XOR B' },
 };
 const IN_POS = { A: [7, 17], B: [7, 43] };
@@ -69,7 +70,7 @@ export default function mount(fig) {
       return `<tr data-a="${r[0]}" data-b="${r[1] ?? ''}" class="${cur ? 'cur' : ''}">${r.map(x => `<td>${x}</td>`).join('')}<td><b>${o}</b></td></tr>`;
     }).join('')}</tbody>`;
     const ok = rows.every(r => evaluate(c, r[0], r[1] ?? 0)[c.out] === c.want(r[0], r[1] ?? 0));
-    out.innerHTML = `用了 <b class="ok">${c.gates.length} 个 NAND</b>。${ok ? `${rows.length} 行都和 ${c.f} 的真值表对得上。` : `<b class="bad">和 ${c.f} 对不上</b>。`}` + (st.gate === 'XOR' ? ' XOR 最省也要 4 个：中间那个 NAND 的输出被用了两次。' : '');
+    out.innerHTML = `用了 <b class="ok">${c.gates.length} 个 NAND</b>。${ok ? `${rows.length} 行都和 ${c.f} 的真值表对得上。` : `<b class="bad">和 ${c.f} 对不上</b>。`}` + (st.gate === 'XOR' ? ' XOR 最省也要 4 个：中间那个 NAND 的输出被用了两次。' : st.gate === 'NOR' ? ' NOR 就是 OR 后面再接一个取反。' : '');
   }
 
   cv.addEventListener('pointerdown', e => {

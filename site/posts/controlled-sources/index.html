@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>四种受控源 · Cr's Blog</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-screen-webfont/lxgwwenkaigbscreen.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="/assets/site.css">
+<script type="module" src="/assets/page.js"></script>
+<style>
+  .cs-side .ctl { grid-template-columns: 4.6rem 1fr 4.4rem; }
+  .cs-side .ctl output { font-size: .82rem; }
+  .fig-main canvas.plot { margin-top: .6rem; }
+  .syntax { font-size: .95rem; }
+  .syntax li code:first-child { white-space: nowrap; }
+  .dir td:first-child { font-family: var(--mono); white-space: nowrap; }
+</style>
+</head>
+<body>
+<header class="site"><a class="name" href="/">Cr's Blog</a><nav><a href="/articles/">文章</a><a href="/essays/">随笔</a><a href="/notes/">速查</a><a href="/tools/">工具</a><a href="/archive/">归档</a></nav></header>
+<main class="post">
+  <div class="kicker"><span>电路</span><span>2025-09-26</span></div>
+  <h1>四种受控源</h1>
+  <p class="dek">输出由电路里另一处的电压或电流决定：E、G、H、F 各管什么，在 lcapy 里怎么写？</p>
+
+  <h2><span class="n">1</span>受控源是什么</h2>
+  <p>独立源的值是写死的：一节 5 V 的电池，接什么都是 5 V。受控源（也叫非独立源）的值则由电路里<b>另一处</b>的电压或电流决定。它像一个两端口元件：一边是“控制端”，只负责感知一个量；另一边是“输出端”，按比例吐出一个电压或电流。</p>
+  <p>控制量可以是电压或电流，输出量也可以是电压或电流，两两组合正好四种：</p>
+  <p>\[\begin{aligned}
+  &amp;\text{E：压控电压源 VCVS} &amp; v_o &amp;= K\, v_c \\
+  &amp;\text{G：压控电流源 VCCS} &amp; i_o &amp;= G_m\, v_c \\
+  &amp;\text{H：流控电压源 CCVS} &amp; v_o &amp;= R_m\, i_c \\
+  &amp;\text{F：流控电流源 CCCS} &amp; i_o &amp;= \beta\, i_c
+  \end{aligned}\]</p>
+  <p>增益的单位跟着“输出 ÷ 控制”走：K 和 β 没有单位，\(G_m\) 是电流除以电压，单位西门子（S），叫跨导；\(R_m\) 是电压除以电流，单位欧姆，叫跨阻。它们是建模的积木：晶体管的小信号模型里，BJT 的集电极电流 ≈ β × 基极电流（F），MOSFET 的漏极电流 ≈ \(g_m\) × 栅源电压（G）；理想运放可以看成增益极大的 E。</p>
+  <p>Lcapy 中设置受控源非常直观，它沿用了 SPICE 的经典语法，支持所有四种基本类型的线性受控源，元件名的首字母就是上面的 E、G、H、F。</p>
+
+  <figure class="play wide" data-fig="./cs.js" id="cs">
+    <div class="fig-head"><span class="fig-no">图 1</span><span>控制支路 → 受控源 → 负载</span></div>
+    <div class="fig-body">
+      <div class="fig-main"><canvas class="ckt" aria-label="受控源电路图"></canvas><canvas class="plot" aria-label="输出随负载变化"></canvas></div>
+      <div class="fig-side cs-side">
+        <div class="ctl-label">哪一种</div>
+        <div class="seg"><button value="E" type="button">E</button><button value="G" type="button">G</button><button value="H" type="button">H</button><button value="F" type="button">F</button></div>
+        <div class="ctl-label">拖</div>
+        <label class="ctl"><span class="lab-c">控制量</span><input name="c" type="range"><output for="c"></output></label>
+        <label class="ctl"><span class="lab-g">增益</span><input name="g" type="range"><output for="g"></output></label>
+        <label class="ctl"><span>负载 R<sub>L</sub></span><input name="rl" type="range" min="0" max="1000" step="1"><output for="rl"></output></label>
+        <p class="readout" aria-live="polite"></p>
+      </div>
+    </div>
+    <figcaption>红色的是能调的：左边的控制量（E、G 是电压，H、F 是流过 0 V 传感器的电流），以及右边三个滑块。绿色是输出。下面两张小图把负载从 10 Ω 扫到 10 kΩ：受控电压源的输出电压是一条平线，受控电流源的输出电流是一条平线。每种的默认值和下文对应的 lcapy 例子一样。都是理想元件，没有饱和，输出要多大有多大。</figcaption>
+  </figure>
+
+  <p>最值得拖的是负载：<button class="try" data-target="#cs" data-set='{"kind":"E","RL":100}'>E 接 100 Ω</button><button class="try" data-target="#cs" data-set='{"kind":"E","RL":8000}'>E 接 8 kΩ</button>，输出电压纹丝不动，变的只有电流；<button class="try" data-target="#cs" data-set='{"kind":"G","RL":20}'>G 接 20 Ω</button><button class="try" data-target="#cs" data-set='{"kind":"G","RL":2000}'>G 接 2 kΩ</button>，正好反过来。</p>
+
+  <h2><span class="n">2</span>E：压控电压源（VCVS）</h2>
+  <p>它的电压由电路中另外两点的电压差控制。</p>
+  <p><b>语法</b>：<code>E&lt;name&gt; n+ n- nc+ nc- K</code></p>
+  <ul class="syntax">
+    <li><code>E&lt;name&gt;</code>：元件名称，例如 <code>E1</code>。</li>
+    <li><code>n+ n-</code>：受控源自身的正负节点。</li>
+    <li><code>nc+ nc-</code>：<b>控制电压</b>的参考正负节点。</li>
+    <li><code>K</code>：电压增益（无单位）。</li>
+    <li>关系式：<code>V(n+, n-) = K * V(nc+, nc-)</code></li>
+  </ul>
+  <p>假设我们要建立一个电压放大器模型，其输出电压是输入电压的 5 倍：<button class="try" data-target="#cs" data-set='{"kind":"E","c":1,"g":5,"RL":1000}'>图里看</button></p>
+<pre><code>from lcapy import Circuit
+
+# 定义电路
+# V1 是输入电压源
+# R1 是输入电阻
+# E1 是压控电压源，它的电压由节点1和0之间的电压（即V1的电压）控制
+# R2 是输出负载
+cct_vcvs = Circuit("""
+V1 1 0 {u(t)}; down
+W 1 1b; right
+R1 1b 0_1 1k; down
+W 0 0_1; right
+E1 2 0_2 1 0 5; down, l=A_v=5
+W 0_1 0_2; right=2
+W 2 3; right
+R2 3 0_3 1k; down
+W 0_2 0_3; right
+""")
+
+# 绘制电路图（需要本机有 LaTeX 和 circuitikz）
+cct_vcvs.draw(style='american')
+
+# 求解节点2的电压 V_out
+V_out = cct_vcvs[2].v
+print(f"压控电压源 (VCVS) 的输出电压 V(2): {V_out}")
+# 结果: 5*Heaviside(t)，即 V(2) = 5 * V(1) = 5 * u(t)</code></pre>
+  <p>lcapy 解出来的是符号表达式，\(u(t)\) 打印出来是 sympy 的 <code>Heaviside(t)</code>，即单位阶跃。网表每行分号后面那段（<code>down</code>、<code>right=2</code>、<code>l=…</code>）只是画图用的位置和标签，不影响计算；<code>0_1</code>、<code>0_2</code> 这些是画在不同位置的接地点，用导线 <code>W</code> 连回 0。</p>
+
+  <h2><span class="n">3</span>G：压控电流源（VCCS）</h2>
+  <p>它产生的电流由电路中另外两点的电压差控制。</p>
+  <p><b>语法</b>：<code>G&lt;name&gt; n+ n- nc+ nc- Gm</code></p>
+  <ul class="syntax">
+    <li><code>G&lt;name&gt;</code>：元件名称，例如 <code>G1</code>。</li>
+    <li><code>n+ n-</code>：输出电流的两个端点（方向见第 7 节，lcapy 和 SPICE 在这里不一样）。</li>
+    <li><code>nc+ nc-</code>：<b>控制电压</b>的参考正负节点。</li>
+    <li><code>Gm</code>：跨导增益（单位是西门子 S）。</li>
+    <li>关系式：<code>I = Gm * V(nc+, nc-)</code></li>
+  </ul>
+  <p>输出电流全部流过负载 R1：<button class="try" data-target="#cs" data-set='{"kind":"G","c":1,"g":0.1,"RL":50}'>图里看</button></p>
+<pre><code>from lcapy import Circuit
+
+# 定义电路
+# V1 是输入电压
+# G1 是压控电流源，其电流由节点1和0之间的电压控制
+# R1 是输出负载，G1产生的电流流过它
+cct_vccs = Circuit("""
+V1 1 0 {u(t)}; down
+G1 2 0_2 1 0 0.1; down, l^=G_m=0.1
+W 0 0_2; right=2
+W 2 3; right
+R1 3 0_3 50; down
+W 0_2 0_3; right
+""")
+
+cct_vccs.draw(style='american')
+
+# 求解流过电阻R1的电流 I_R1
+I_R1 = cct_vccs.R1.i
+print(f"压控电流源 (VCCS) 产生的电流 I(R1): {I_R1}")
+# 结果: Heaviside(t)/10，即 I(R1) = 0.1 * V(1) = 0.1 * u(t)</code></pre>
+  <p>注意受控源的输出节点 2 不能和控制节点 1 直接连在一起：节点 1 被理想电压源 V1 钉死在 \(u(t)\)，要是用导线把 2 也接上去，R1 两端的电压就永远是 V1 的电压，电流变成 \(u(t)/50\)，跟 G1 一点关系都没有了。</p>
+
+  <h2><span class="n">4</span>H：流控电压源（CCVS）</h2>
+  <p>它的电压由流过<b>另一个元件</b>的电流控制。</p>
+  <p><b>关键点</b>：Lcapy 需要一个“电流传感器”来确定控制电流。通常我们会把一个 <b>0 V 的电压源</b>（dummy voltage source）串联在需要测量电流的支路中，然后用这个 0 V 电压源的名称来指定控制电流。</p>
+  <p>为什么偏偏是电压源？lcapy 和 SPICE 解电路用的都是改进节点分析（MNA）：未知量是各节点的电压，外加<b>每个电压源上的电流</b>。普通电阻上的电流不是方程里的未知量，电压源上的才是。一个 0 V 的电压源两端没有压降，接进去不改变电路，却让这条支路的电流成了一个有名字、能被引用的量。</p>
+  <p><b>语法</b>：<code>H&lt;name&gt; n+ n- V_sensor Rm</code></p>
+  <ul class="syntax">
+    <li><code>H&lt;name&gt;</code>：元件名称，例如 <code>H1</code>。</li>
+    <li><code>n+ n-</code>：受控源自身的正负节点。</li>
+    <li><code>V_sensor</code>：<b>作为电流传感器的 0 V 电压源</b>的名称。</li>
+    <li><code>Rm</code>：跨阻增益（单位是欧姆 Ω）。</li>
+    <li>关系式：<code>V(n+, n-) = Rm * I(V_sensor)</code></li>
+  </ul>
+  <p><button class="try" data-target="#cs" data-set='{"kind":"H","c":1,"g":50,"RL":1000}'>图里看</button></p>
+<pre><code>from lcapy import Circuit
+
+# 定义电路
+# Vsense 是一个0V的电压源，作为电流传感器，用于“感知”流过 R1 的电流
+# H1 是流控电压源，它的电压由流过 Vsense 的电流控制
+cct_ccvs = Circuit("""
+I1 1 0 {u(t)}; down
+R1 1 a 100; right
+Vsense a 0_a 0; down
+W 0 0_a; right
+H1 2 0_2 Vsense 50; down, l=R_m=50
+W 0_a 0_2; right=2
+W 2 3; right
+R2 3 0_3 1k; down
+W 0_2 0_3; right
+""")
+
+cct_ccvs.draw(style='american')
+
+# 求解节点2的电压 V_out
+V_out = cct_ccvs[2].v
+print(f"流控电压源 (CCVS) 的输出电压 V(2): {V_out}")
+# 结果: 50*Heaviside(t)。I(Vsense) = I1 = u(t)，所以 V(2) = 50 * I(Vsense) = 50 * u(t)</code></pre>
+
+  <h2><span class="n">5</span>F：流控电流源（CCCS）</h2>
+  <p>它产生的电流由流过<b>另一个元件</b>的电流控制。和 CCVS 一样，它也需要一个 0 V 电压源作为电流传感器。</p>
+  <p><b>语法</b>：<code>F&lt;name&gt; n+ n- V_sensor Beta</code></p>
+  <ul class="syntax">
+    <li><code>F&lt;name&gt;</code>：元件名称，例如 <code>F1</code>。</li>
+    <li><code>n+ n-</code>：输出电流的两个端点（方向见第 7 节）。</li>
+    <li><code>V_sensor</code>：<b>作为电流传感器的 0 V 电压源</b>的名称。</li>
+    <li><code>Beta</code>：电流增益（无单位），通常用于 BJT 等模型。</li>
+    <li>关系式：<code>I = Beta * I(V_sensor)</code></li>
+  </ul>
+  <p>下面是一个 BJT 的简化模型：基极电流 \(I_b\) 由 V1 经 R_B 提供，集电极电流 \(I_c = \beta I_b\) 从电源 V_CC 经负载 R_L 流进 F1。<button class="try" data-target="#cs" data-set='{"kind":"F","c":1,"g":100,"RL":500}'>图里看</button><button class="try" data-target="#cs" data-set='{"kind":"F","c":-1}'>基极电流反过来</button></p>
+<pre><code>from lcapy import Circuit
+
+# 定义电路
+# V1 是基极驱动
+# Vsense 用于感知基极电流 I_b
+# F1 是流控电流源，模拟集电极电流 I_c = Beta * I_b = 100 * I_b
+# R_L 是集电极负载电阻，V_CC 是电源
+# （注释别写在网表行尾：lcapy 会把 # 后面的字当成画图参数的一部分）
+cct_cccs = Circuit("""
+V1 1 0 {u(t)}; down
+R_B 1 a 1k; right
+Vsense a 0_a 0; down
+W 0 0_a; right
+F1 c 0_c Vsense 100; down, l^=\\beta=100
+W 0_a 0_c; right=2
+R_L d c 500; down
+W d e; right
+V_CC e 0_e 10; down
+W 0_c 0_e; right
+""")
+
+cct_cccs.draw(style='american')
+
+# 集电极电流就是从 V_CC 经 R_L 流进 F1 的电流
+I_c = cct_cccs.R_L.i
+print(f"流控电流源 (CCCS) 产生的电流 I_c: {I_c}")
+# 结果: Heaviside(t)/10。I_b = V1 / R_B = u(t)/1000，所以 I_c = 100 * I_b = 0.1 * u(t)</code></pre>
+  <p>集电极节点 c 的电压是 \(10 - 0.1u(t)\times 500 = 10 - 50u(t)\)：理想的 F 不管电压，硬是把 0.1 A 拉过 R_L，节点电压可以掉到负几十伏。真实的晶体管在这之前早就饱和了，这正是“理想受控源”和真器件的区别。</p>
+
+  <h2><span class="n">6</span>总结</h2>
+  <div class="table-wrap"><table>
+    <thead><tr><th>类型</th><th>元件</th><th>描述</th><th>控制量</th><th>输出量</th><th>语法</th></tr></thead>
+    <tbody>
+      <tr data-set='{"kind":"E"}' data-target="#cs"><td><b>VCVS</b></td><td><b>E</b></td><td>压控电压源</td><td>电压 <code>V(nc+, nc-)</code></td><td>电压</td><td><code>E name n+ n- nc+ nc- K</code></td></tr>
+      <tr data-set='{"kind":"G"}' data-target="#cs"><td><b>VCCS</b></td><td><b>G</b></td><td>压控电流源</td><td>电压 <code>V(nc+, nc-)</code></td><td>电流</td><td><code>G name n+ n- nc+ nc- Gm</code></td></tr>
+      <tr data-set='{"kind":"H"}' data-target="#cs"><td><b>CCVS</b></td><td><b>H</b></td><td>流控电压源</td><td>电流 <code>I(V_sensor)</code></td><td>电压</td><td><code>H name n+ n- V_sensor Rm</code></td></tr>
+      <tr data-set='{"kind":"F"}' data-target="#cs"><td><b>CCCS</b></td><td><b>F</b></td><td>流控电流源</td><td>电流 <code>I(V_sensor)</code></td><td>电流</td><td><code>F name n+ n- V_sensor Beta</code></td></tr>
+    </tbody>
+  </table></div>
+  <p><b>最重要的技巧</b>：当你需要用电流作为控制量时（CCVS 和 CCCS），记得在被控制的支路中串联一个<b>值为 0 的电压源</b>，并用它的名字来告诉 Lcapy 你要测量哪里的电流。</p>
+
+  <h2><span class="n">7</span>电流往哪个方向流</h2>
+  <p>正负号是受控源最容易错的地方。SPICE 的约定是：电流源（I、G、F）的正电流从 n+ 进去、穿过源、从 n− 出来；电压源上的电流也是从 n+ 穿过源流到 n−。lcapy 1.26 实测下来不完全一样：</p>
+  <div class="table-wrap"><table class="dir">
+    <thead><tr><th>网表</th><th>lcapy 1.26 的结果</th><th>和 SPICE 比</th></tr></thead>
+    <tbody>
+      <tr><td>I1 1 0 2<br>R1 1 0 3</td><td>V(1) = +6 V：电流从 n+ 推出到外电路</td><td>相反（SPICE 是 −6 V）</td></tr>
+      <tr><td>G1 2 0 1 0 0.1<br>R1 2 0 50</td><td>V(2) = +5u(t)：同样从 n+ 推出</td><td>相反</td></tr>
+      <tr><td>F1 2 0 Vsense 100<br>R_L 2 0 500</td><td>V(2) = −50u(t)：电流从 n+ 吸进去</td><td>相同</td></tr>
+      <tr><td>Vsense a 0 0</td><td>控制电流以从 a 穿过 Vsense 流到 0 为正</td><td>相同</td></tr>
+    </tbody>
+  </table></div>
+  <p>（F 那一行的 Vsense 电流是 +1 mA，接法和第 5 节一样。）所以第 4 节 CCVS 的电流源写成 <code>I1 1 0</code>：要是按 SPICE 的习惯写成 <code>I1 0 1</code>，lcapy 算出来的是 \(-50u(t)\)。稳妥的做法是写完先接一个简单负载，看一眼正负号对不对。</p>
+  <p>另外三个 lcapy 的小坑：</p>
+  <ul>
+    <li><b>网表行尾别写 # 注释。</b>lcapy 不会把它当注释，而是当成画图参数的一部分：<code>Vsense a 0 0; down # 传感器</code> 解析出来的方向是 “down # 传感器”，画图时就乱了。注释写在 Python 那边。</li>
+    <li><b>画图提示要前后一致。</b>同一对节点之间不能一个元件说 <code>down</code>、另一个说 <code>right</code>，否则 <code>draw()</code> 报 “schematic graph has a loop”。并联的元件各用一个接地点（<code>0_1</code>、<code>0_2</code>…），再用导线连回 0。画图还需要本机装好 LaTeX 和 circuitikz。</li>
+    <li><b><code>F1.i</code> 取不到。</b>lcapy 1.26 里对 F 元件取电流会报 KeyError，第 5 节因此改用串在同一条支路上的 <code>R_L.i</code>。</li>
+  </ul>
+</main>
+<footer class="site"><a href="/">← 首页</a><span>Cr's Blog</span><a href="/">首页 →</a></footer>
+</body>
+</html>

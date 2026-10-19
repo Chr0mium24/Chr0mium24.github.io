@@ -44,14 +44,22 @@ document.addEventListener('click', e => {
   if (r.bottom < 80 || r.top > innerHeight - 80) fig.scrollIntoView({ behavior: 'smooth', block: 'center' });
 });
 
-const minis = document.querySelectorAll('[data-mini]');
-if (minis.length) {
-  const io = new IntersectionObserver(es => es.forEach(async e => {
-    if (!e.isIntersecting) return;
-    io.unobserve(e.target);
-    try { (await import(new URL(e.target.dataset.mini, location.href))).default(e.target); }
-    catch (err) { console.error('小图没挂上：', e.target.dataset.mini, err); }
-  }), { rootMargin: '200px' });
+// 首页小图：滚到眼前才挂；IntersectionObserver 万一不触发（比如页面在后台），load 后 2 秒也全部挂上
+const mountMini = async el => {
+  if (el.dataset.mounted) return;
+  el.dataset.mounted = '1';
+  try {
+    (await import(new URL(el.dataset.mini, location.href))).default(el);
+    el.classList.add('hint');   // 第一次出现时轻轻提示一下“这里能动”
+  } catch (err) { console.error('小图没挂上：', el.dataset.mini, err); }
+};
+export function watchMinis(root = document) {
+  const minis = root.querySelectorAll('[data-mini]:not([data-mounted])');
+  if (!minis.length) return;
+  const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { io.unobserve(e.target); mountMini(e.target); } }), { rootMargin: '200px' });
   minis.forEach(m => io.observe(m));
+  const late = () => setTimeout(() => minis.forEach(mountMini), 2000);
+  document.readyState === 'complete' ? late() : addEventListener('load', late, { once: true });
 }
+watchMinis();
 

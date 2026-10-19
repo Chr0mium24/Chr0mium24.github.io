@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>在浏览器里跑 Python · Cr's Blog</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-screen-webfont/lxgwwenkaigbscreen.css">
+<link rel="stylesheet" href="/assets/site.css">
+<script type="module" src="/assets/page.js"></script>
+<script type="module">import { mountAll } from '/assets/runner.js'; mountAll();</script>
+<style>
+  .dp .stage { margin: 0 0 .9rem; }
+  .dp .lab { font-size: .8rem; color: var(--mute); margin-bottom: .3rem; }
+  .dp .lab code { color: var(--ink); }
+  .dp .msg { font: 11.5px/1.55 var(--mono); color: var(--ink2); margin-top: .25rem; overflow-wrap: anywhere; }
+  .dp .msg span { color: var(--mute); font-family: var(--sans); }
+  .dp .skip { color: var(--mute); font-size: .84rem; margin: 0; }
+  .dp table { font-size: .8rem; margin: 0; }
+  .dp td { padding: .28rem .6rem .28rem 0; overflow-wrap: anywhere; }
+  .dp td:first-child { font-family: var(--mono); white-space: nowrap; }
+  .dp tr.off td:nth-child(2) { font-family: var(--mono); font-size: .76rem; }
+  .dp td:last-child { white-space: nowrap; }
+  .dp tr.off td { color: var(--mute); }
+  .dp tr.have td { color: var(--mute); }
+  .dp tr.dist td:last-child, .dp tr.pypi td:last-child { color: var(--fig-ok); }
+  .dp tr.fail td { background: color-mix(in srgb, var(--ink) 7%, transparent); font-weight: 600; }
+  .dp .imp { display: flex; flex-wrap: wrap; gap: .3rem; align-items: center; font: 12.5px var(--mono); }
+  .dp .imp span { padding: .1rem .5rem; border-radius: 4px; border: 1px solid var(--line); }
+  .dp .imp span.y { color: var(--fig-ok); border-color: color-mix(in srgb, var(--fig-ok) 45%, transparent); background: color-mix(in srgb, var(--fig-ok) 9%, transparent); }
+  .dp .imp span.n { color: var(--ink); border-color: var(--ink); font-weight: 600; }
+  .dp .imp span.u { color: var(--mute); }
+  .dp .imp i { color: var(--mute); font-style: normal; }
+  .dp .term { font: 11.5px/1.6 var(--mono); white-space: pre-wrap; overflow-wrap: anywhere; margin: .2rem 0 0; }
+  .dp .term.bad { box-shadow: inset 3px 0 var(--ink2); }
+  .dp .term.good { box-shadow: inset 3px 0 var(--fig-ok); }
+  .pre .toggle.pulled { border-style: dashed; border-color: var(--fig-ok); color: var(--fig-ok); }
+  @media (max-width: 56rem) { #deps .fig-side { order: -1; } }
+  .err-msg { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .flow { padding-left: 1.4em; }
+  .flow li { margin: .35em 0; }
+</style>
+</head>
+<body>
+<header class="site"><a class="name" href="/">Cr's Blog</a><nav><a href="/articles/">文章</a><a href="/essays/">随笔</a><a href="/notes/">速查</a><a href="/tools/">工具</a><a href="/archive/">归档</a></nav></header>
+<main class="post">
+  <div class="kicker"><span>Python</span><span>2025-09-30</span></div>
+  <h1>在浏览器里跑 Python</h1>
+  <p class="dek">micropip 报“找不到纯 Python 3 wheel”的时候，到底卡在哪个包上？</p>
+
+  <h2><span class="n">1</span>Pyodide：浏览器里的 CPython</h2>
+  <p>Pyodide 是用 Emscripten 把 CPython 解释器整个编译成 WebAssembly 的项目：解释器、标准库一起下载到浏览器，代码在本地执行，不需要后端。PyScript 在它上面又包了一层，让你在 HTML 里直接写 Python；底层跑的还是 Pyodide，装包也一样交给 micropip，所以下面说的坑两边是同一个。</p>
+  <p>这页的代码格就是这么跑起来的，每一格都用一个全新的解释器，互不影响：</p>
+
+  <div class="runner" data-fresh><pre>import sys
+print(sys.version)
+print(sys.platform)    # 不是 linux / darwin，而是 emscripten</pre></div>
+
+  <h2><span class="n">2</span>包从哪来</h2>
+  <p>Python 包发布成 wheel，文件名最后三段是“标签”：比如 <code>lcapy-1.26-py3-none-any.whl</code> 的 <code>py3-none-any</code> 表示纯 Python、不挑平台，放进 WebAssembly 里也照样能用；而带 C 扩展的包（numpy、scipy…）在 PyPI 上只有给 Linux、macOS、Windows 编译的版本，浏览器里一个也跑不了。</p>
+  <p>所以 Pyodide 自己维护了一个发行版：把常用的 C 扩展包用 Emscripten 重新编译好，放在 CDN 上，比如这页用的 314.0.7 版里是 <code>numpy-2.4.6-cp314-cp314-pyemscripten_2026_0_wasm32.whl</code>。装包有两条路：</p>
+  <ul>
+    <li>JavaScript 里 <code>await pyodide.loadPackage([...])</code>：只认发行版里的包，按发行版的清单把依赖一起装上。</li>
+    <li>Python 里 <code>await micropip.install(...)</code>：对每个要装的包（默认还有它声明的所有依赖，一层层往下）依次问：
+      <ol class="flow">
+        <li>已经装了吗？装了就跳过；</li>
+        <li>Pyodide 发行版里有吗？有就从 Pyodide 的 CDN 装；</li>
+        <li>PyPI 上有纯 Python 的 wheel 吗？有就下载；</li>
+        <li>都没有：报错。micropip 不会、也没法在浏览器里从源码包编译。</li>
+      </ol>
+    </li>
+  </ul>
+  <p>第 4 种情况的报错就是这一句：</p>
+<pre class="err-msg">ValueError: Can't find a pure Python 3 wheel for 'importlib'.
+See: https://pyodide.org/en/stable/usage/faq.html#why-can-t-micropip-find-a-pure-python-wheel-for-a-package
+You can use `await micropip.install(..., keep_going=True)` to get a list of all packages with missing wheels.</pre>
+
+  <h2><span class="n">3</span>lcapy 卡在 importlib</h2>
+  <p>lcapy 是一个做线性电路符号分析的库，本身是纯 Python 的 wheel。但 2025-09-28 发布的 1.26 版在依赖列表里多写了一项 <code>importlib</code>。PyPI 上叫 importlib 的包是给 Python 2.7 用的 <code>import_module()</code> 移植版，只有一个源码包 <code>importlib-1.0.4.zip</code>，没有任何 wheel。Python 3 的 importlib 是标准库，根本不用装。</p>
+  <p>在普通电脑上，pip 会把这个源码包构建一遍，在 Python 3 上它什么文件都不装，只留下一个 dist-info，相安无事；到了 micropip 这里，没有 wheel 就是死路，于是整个 install 在解析阶段就失败了，lcapy 本身也没装上。</p>
+
+  <figure class="play wide" data-fig="./deps.js" id="deps">
+    <div class="fig-head"><span class="fig-no">图 1</span><span>micropip 装 lcapy：每个依赖去哪找</span></div>
+    <div class="fig-body">
+      <div class="fig-main"><div class="dp" aria-live="polite"></div></div>
+      <div class="fig-side pre">
+        <div class="ctl-label">deps=</div>
+        <div class="seg deps"><button value="on" type="button">True（默认）</button><button value="off" type="button">False</button></div>
+        <div class="ctl-label">先用 loadPackage 装好</div>
+        <div class="btns"><button class="toggle" value="numpy" type="button">numpy</button><button class="toggle" value="scipy" type="button">scipy</button><button class="toggle" value="sympy" type="button">sympy</button><button class="toggle" value="matplotlib" type="button">matplotlib</button><button class="toggle" value="networkx" type="button">networkx</button></div>
+        <p class="readout" aria-live="polite"></p>
+      </div>
+    </div>
+    <figcaption>切 deps、勾选要预先装好的包，看三步各自的结果。虚线绿框是没勾、但被别的包顺带装上的（比如 Pyodide 里的 networkx 依赖 matplotlib 和 numpy）。依赖列表、版本号、文件大小和报错的文字都是实测的：lcapy 1.26、Pyodide 314.0.7。</figcaption>
+  </figure>
+
+  <p>deps 开着的时候，预装什么都没用，importlib 那一行永远过不去：<button class="try" data-target="#deps" data-set='{"deps":true,"pre":"all"}'>全装好也不行</button></p>
+  <p>想看看这一行的报错，直接让 micropip 装 importlib 就能复现：</p>
+
+  <div class="runner" data-fresh><pre>import micropip
+await micropip.install("importlib")</pre></div>
+
+  <p>报错末尾提示可以加 <code>keep_going=True</code>。它只会把所有找不到 wheel 的包一次列全（这里只有 importlib 一个），并不会让安装成功。</p>
+
+  <h2><span class="n">4</span>deps=False，依赖自己装</h2>
+  <p>关键代码：</p>
+<pre><code>outputElement.innerText += '\n正在安装 lcapy...';
+await pyodide.runPythonAsync(`
+    import micropip
+    await micropip.install('lcapy',deps=False)
+`);</code></pre>
+  <p>当频繁出现上面那种报错、这类下载不到官方库的抽象问题时，并不要去<code>keep_going=True</code>，而是应该自己加载好所有的依赖<code>await pyodide.loadPackage(["numpy", "scipy", "sympy", "matplotlib", "networkx"])</code>，忽略原来提供的包依赖<code>deps=False</code>。</p>
+  <p><code>deps=False</code> 让 micropip 只装 lcapy 自己那一个 wheel，依赖列表整个不看；真正要用的 numpy、sympy 这些，提前用 <code>loadPackage</code> 从 Pyodide 发行版装好。顺带也跳过了几个在网页里用不上的依赖：IPython 只在 Jupyter 里显示电路图时才用到，property-cached 只是给 Python 3.8 以前准备的后备。</p>
+  <p>只关依赖、不补包，装是能装上，import 就出事了：<button class="try" data-target="#deps" data-set='{"deps":false,"pre":[]}'>什么都不预装</button></p>
+
+  <div class="runner" data-fresh><pre>import warnings
+warnings.simplefilter("ignore", SyntaxWarning)   # lcapy 源码里有几处无效转义，3.12 起编译时会警告
+
+import micropip
+await micropip.install("lcapy", deps=False)
+import lcapy</pre></div>
+
+  <p>那到底要补哪几个？在 Pyodide 314.0.7 里把它们一个个去掉试一遍：<code>import lcapy</code> 时会依次用到 sympy、numpy、networkx，缺哪个就在哪儿报 ModuleNotFoundError；scipy 是 lcapy 里某些函数用到时才导入的，不装也能 import、能解简单的电路；matplotlib 则不用操心，装 networkx 时发行版会顺带装上。<button class="try" data-target="#deps" data-set='{"deps":false,"pre":["sympy"]}'>只装 sympy</button><button class="try" data-target="#deps" data-set='{"deps":false,"pre":["sympy","networkx"]}'>sympy + networkx 就够 import</button><button class="try" data-target="#deps" data-set='{"deps":false,"pre":"all"}'>五个都装</button></p>
+  <p>五个都装是最稳的做法，代价是下载量：发行版会把它们的依赖一起拉下来，一共 18 个包、30 多 MB，光 scipy 就 14 MB。下面这格就是完整流程，第一次跑要等一会儿：</p>
+
+  <div class="runner" data-fresh data-note="要下载约 34 MB（scipy 一个就 14 MB），第一次跑会慢"><pre>import warnings
+warnings.simplefilter("ignore", SyntaxWarning)
+
+import micropip, pyodide_js
+await pyodide_js.loadPackage(["numpy", "scipy", "sympy", "matplotlib", "networkx"])
+await micropip.install("lcapy", deps=False)
+
+from lcapy import Circuit
+cct = Circuit("""
+V1 1 0 {u(t)}
+R1 1 0 1k
+E1 2 0 1 0 5
+R2 2 0 1k
+""")
+print(cct[2].v)    # 压控电压源把 V1 放大 5 倍</pre></div>
+  <p>Python 里的 <code>pyodide_js</code> 就是 JavaScript 那边的 <code>pyodide</code> 对象，<code>pyodide_js.loadPackage</code> 和上面 JS 里的 <code>pyodide.loadPackage</code> 是同一个函数。电路本身的写法见<a href="/posts/controlled-sources/">四种受控源</a>。</p>
+
+  <h2><span class="n">5</span>碰到这类报错时</h2>
+  <ol>
+    <li>看报错里点名的那个包是谁要的。PyPI 的 JSON 接口能直接看到一个包声明的依赖：<code>https://pypi.org/pypi/lcapy/json</code> 里的 <code>info.requires_dist</code>。</li>
+    <li>点名的包如果像 importlib 这样根本用不上（Python 2 的移植版、Windows 专用的包、只给命令行用的工具……），就 <code>deps=False</code> 绕过去。</li>
+    <li>剩下真正要用的依赖，发行版里有的用 <code>loadPackage</code> 装，没有的再单独 <code>micropip.install</code>（它们自己的依赖照常解析）。</li>
+    <li>跑一遍 import 和你要用的函数。<code>deps=False</code> 的坑不会在安装时出现，而是在用到某个模块时才冒出 ModuleNotFoundError，缺什么补什么。</li>
+  </ol>
+</main>
+<footer class="site"><a href="/">← 首页</a><span>Cr's Blog</span><a href="/">首页 →</a></footer>
+</body>
+</html>

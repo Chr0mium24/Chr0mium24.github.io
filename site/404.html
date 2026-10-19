@@ -18,8 +18,34 @@
       '/posts/lambda-calc/': '/posts/lambda/',
       '/posts/lib-sys-analysis/': '/posts/library/',
       '/posts/minecraft-high-tech-modpacks/': '/posts/modpacks/',
-      '/webpages/': '/#tools',
-      '/archive/': '/',
+      // 改版：按主题合并、改名
+      '/posts/jia1/': '/posts/roc/', '/posts/geo/': '/posts/roc/',
+      '/posts/bangbang-control/': '/posts/sliding-mode/',
+      '/posts/kf-and-lqr/': '/posts/kf-lqr/',
+      '/posts/linear-regression-discussion/': '/posts/regression/',
+      '/posts/behavior-floor-pricing/': '/posts/floor-pricing/',
+      '/posts/python-class-and-attribute/': '/posts/python-objects/', '/posts/python-basic/': '/posts/python-objects/',
+      '/posts/pyscript-micropip-issue/': '/posts/pyodide/',
+      '/posts/verilog-tut/': '/posts/verilog/',
+      '/posts/lcapy/': '/posts/controlled-sources/',
+      '/posts/macos-window-shortcuts/': '/posts/toggle-app/',
+      '/posts/how-to-read-paper/': '/posts/research-workflow/', '/posts/research-drawing/': '/posts/research-workflow/', '/posts/how-to-find-ted-transcript/': '/posts/research-workflow/',
+      '/posts/rm-oct-task/': '/posts/autoaim/',
+      '/posts/guide-to-graduate-admission/': '/posts/ece-application/',
+      // 信息类的搬到速查
+      '/posts/course-evaluate/': '/notes/lgu-courses/',
+      '/posts/mac-shortcuts/': '/notes/mac-shortcuts/',
+      '/posts/macbook-from-windows-to-macos/': '/notes/back-to-macos/',
+      '/posts/win11-reinstall/': '/notes/windows/', '/posts/windows-beautify/': '/notes/windows/',
+      '/posts/skills-and-mcp-install/': '/notes/skills/',
+      '/posts/excel-eval-formula/': '/notes/excel-eval/',
+      '/posts/python-script-calc-filename-sum/': '/notes/filename-sum/',
+      '/posts/macos-install-silksong-mod/': '/notes/silksong/',
+      '/posts/a00-car/': '/notes/a00-car/',
+      // 删掉的
+      '/posts/gfn-lec1/': '/', '/posts/gfn-lec2/': '/', '/posts/gfn-lec3/': '/', '/posts/gfnlec4/': '/',
+      '/posts/first-two-year-study-plan/': '/', '/posts/vanblog-build-process/': '/',
+      '/webpages/': '/tools/',
     };
     const to = moved[p] ?? moved[p + '/'] ?? (/^\/[^/]+\.html$/.test(p) && p !== '/404.html' ? '/tools' + p : null);
     if (to) location.replace(to + location.hash);
@@ -29,7 +55,7 @@
 <link rel="stylesheet" href="/assets/site.css">
 </head>
 <body>
-<header class="site"><a class="name" href="/">Cr's Blog</a><nav><a href="/#essays">随笔</a><a href="/#notes">笔记</a><a href="/#tools">小工具</a></nav></header>
+<header class="site"><a class="name" href="/">Cr's Blog</a><nav><a href="/articles/">文章</a><a href="/essays/">随笔</a><a href="/notes/">速查</a><a href="/tools/">工具</a><a href="/archive/">归档</a></nav></header>
 <main class="post">
   <div class="kicker"><span>404</span></div>
   <h1>没有这一页</h1>

@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>mac 快捷键 · Cr's Blog</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-screen-webfont/lxgwwenkaigbscreen.css">
+<link rel="stylesheet" href="/assets/site.css">
+<script type="module" src="/assets/page.js"></script>
+</head>
+<body>
+<header class="site"><a class="name" href="/">Cr's Blog</a><nav><a href="/articles/">文章</a><a href="/essays/">随笔</a><a href="/notes/">速查</a><a href="/tools/">工具</a><a href="/archive/">归档</a></nav></header>
+<main class="post">
+  <div class="kicker"><span>速查</span><span>2026-03-24</span></div>
+  <h1>mac 快捷键</h1>
+  <div class="note-body">
+    <style>
+      .note-body .kb { display: flex; flex-direction: column; gap: 3px; padding: 6px; background: #efeadd; border-radius: 8px; user-select: none; }
+      .note-body .kr { display: flex; gap: 3px; }
+      .note-body .kgap { min-width: 0; }
+      .note-body .k { min-width: 0; height: 1.95rem; padding: 0; overflow: hidden; white-space: nowrap; font: .68rem/1 var(--sans); color: var(--ink2); background: var(--panel); border: 1px solid color-mix(in srgb, var(--ink) 14%, transparent); border-bottom-width: 2px; border-radius: 5px; cursor: pointer; }
+      .note-body .k:hover { border-color: var(--hand); }
+      .note-body .k.live { background: color-mix(in srgb, var(--fig-ok) 16%, var(--panel)); color: var(--ink); }
+      .note-body .k.sharp { background: color-mix(in srgb, var(--fig-ok) 38%, var(--panel)); }
+      .note-body .k.sel { outline: 2px solid var(--hand); outline-offset: -2px; }
+      .note-body .k.pk { box-shadow: inset 0 0 0 2px var(--ink); color: var(--ink); font-weight: 600; }
+      .note-body .k.mod { color: var(--hand); border-color: color-mix(in srgb, var(--hand) 40%, transparent); font-size: .8rem; }
+      .note-body .k.mod[aria-pressed="true"] { background: var(--hand); color: #fff; border-color: var(--hand); }
+      .note-body .sc-tools { display: flex; gap: .5rem; align-items: center; margin: .7rem 0 .2rem; }
+      .note-body .sc-tools input { flex: 1; min-width: 0; font: .9rem var(--sans); border: 1px solid color-mix(in srgb, var(--hand) 35%, transparent); background: #fff; color: var(--ink); border-radius: 6px; padding: .25rem .5rem; }
+      .note-body .sc-tools input:focus { outline: 2px solid color-mix(in srgb, var(--hand) 30%, transparent); border-color: var(--hand); }
+      .note-body .sc-tools .btn { white-space: nowrap; }
+      .note-body .sc-list h4 { font: 600 .76rem var(--sans); color: var(--mute); letter-spacing: .1em; margin: .9rem 0 .2rem; }
+      .note-body .sc-list ul { list-style: none; padding: 0; margin: 0; }
+      .note-body .sc-list li { display: grid; grid-template-columns: minmax(7.5rem, auto) minmax(0, 1fr); gap: .2rem .8rem; align-items: baseline; padding: .28rem .4rem; border-bottom: 1px dashed var(--line); cursor: pointer; font-size: .88rem; line-height: 1.5; border-left: 2px solid transparent; }
+      .note-body .sc-list li:hover { border-left-color: color-mix(in srgb, var(--hand) 55%, transparent); }
+      .note-body .sc-list li.on { background: color-mix(in srgb, var(--fig-ok) 10%, transparent); border-left-color: var(--fig-ok); }
+      .note-body .caps { display: flex; flex-wrap: wrap; gap: 2px; align-items: center; }
+      .note-body .caps kbd, .note-body p kbd { font: .74rem/1.4 var(--mono); border: 1px solid color-mix(in srgb, var(--ink) 25%, transparent); border-bottom-width: 2px; border-radius: 4px; padding: 0 .3em; background: var(--panel); white-space: nowrap; }
+      .note-body .caps i { font-style: normal; color: var(--mute); font-size: .72rem; margin: 0 .1em; }
+      .note-body .caps .act { font-size: .76rem; color: var(--ink2); margin-left: .2em; }
+      .note-body .sc-list .none { color: var(--mute); font-size: .88rem; }
+      @media (max-width: 30rem) { .note-body .sc-list li { grid-template-columns: minmax(0, 1fr); } .note-body .k { font-size: .6rem; } .note-body .k.mod { font-size: .72rem; } }
+    </style>
+    <p>按住哪个修饰键，就点哪个（红色的 <kbd>⌘</kbd> <kbd>⇧</kbd> <kbd>⌥</kbd> <kbd>⌃</kbd> <kbd>fn</kbd>），下面只留带这些键的快捷键；再点一个普通键可以继续筛，也能直接搜。</p>
+    <figure class="play" id="note-kbd" data-fig="/notes/mac-shortcuts/kbd.js">
+      <div class="fig-body stack">
+        <div class="fig-main">
+          <div class="kb" aria-label="虚拟键盘"></div>
+          <div class="sc-tools"><input type="search" placeholder="搜：截图、窗口、隐藏文件…" aria-label="搜索快捷键"><button type="button" class="btn clear">清空</button></div>
+          <p class="readout" aria-live="polite"></p>
+          <div class="sc-list"></div>
+        </div>
+      </div>
+    </figure>
+    <p><button class="try" data-target="#note-kbd" data-set='{"mods":"f","key":null}'>fn 开头的</button><button class="try" data-target="#note-kbd" data-set='{"mods":"cs","key":null}'>⌘⇧ 开头的</button><button class="try" data-target="#note-kbd" data-set='{"mods":"","key":null,"q":"截图"}'>搜截图</button></p>
+    <p>fn 开头的这些，在新键盘上就是左下角的 🌐 地球仪键。窗口贴边（<kbd>fn</kbd> <kbd>⌃</kbd> + 方向键）要 macOS 15 以上。</p>
+  </div>
+</main>
+<footer class="site"><a href="/notes/">← 速查</a><span>Cr's Blog</span><a href="/">首页 →</a></footer>
+</body>
+</html>

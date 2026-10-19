@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>科研工作流：读论文、找资料、画图 · Cr's Blog</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-screen-webfont/lxgwwenkaigbscreen.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="/assets/site.css">
+<script type="module" src="/assets/page.js"></script>
+<style>
+  #fig-passes canvas.time { margin-top: .6rem; }
+  #fig-passes .btns { margin-bottom: .2rem; }
+  .libs li { margin: .3rem 0; }
+</style>
+</head>
+<body>
+<header class="site"><a class="name" href="/">Cr's Blog</a><nav><a href="/articles/">文章</a><a href="/essays/">随笔</a><a href="/notes/">速查</a><a href="/tools/">工具</a><a href="/archive/">归档</a></nav></header>
+<main class="post">
+  <div class="kicker"><span>研究</span><span>2026-03-20</span></div>
+  <h1>科研工作流：读论文、找资料、画图</h1>
+  <p class="dek">论文分三遍读，资料顺着引用找，图和计算分成两个脚本。</p>
+
+  <p>术语密集、逻辑绕、一页要读半天，刚开始做研究的时候，论文常常像一堵墙。但读论文不靠天赋，是一套能练出来的流程；找资料和画图也一样，套路定下来，省下的时间都能拿去想问题。</p>
+
+  <h2><span class="n">1</span>读之前：戴两副眼镜</h2>
+  <p>读一篇论文，最终是要弄懂作者做出了什么科学贡献。这不是被动地接收信息，而是一边读一边审，同时戴着两副眼镜：一副批判的，一副创造的。</p>
+  <h3>批判：当一个审慎的怀疑者</h3>
+  <p>别预设作者永远是对的。读的时候不停地问：</p>
+  <ul>
+    <li><strong>问题值不值得做？</strong>作者解决的是一个真正有意义的问题吗？</li>
+    <li><strong>有没有更简单的办法？</strong>是不是有被忽略掉的、更直接的解法？</li>
+    <li><strong>方案的局限在哪？</strong>这些限制是作者明说的，还是绕开没提的？</li>
+    <li><strong>假设站得住吗？</strong>所有论证建立在哪些假设上，推理中间有没有跳步？</li>
+    <li><strong>数据撑得住结论吗？</strong>数据怎么采的，够不够，还有没有别的解读？</li>
+  </ul>
+  <h3>创造：当一个积极的建设者</h3>
+  <p>只挑毛病相对容易。更难、也更有用的是找出文章的闪光点，想想怎么在它上面接着盖：</p>
+  <ul>
+    <li><strong>核心想法是什么？</strong>这篇里最有价值、最漂亮的一个想法是哪个？</li>
+    <li><strong>能不能搬到别处？</strong>这个想法能用到作者没提到的问题或领域吗？</li>
+    <li><strong>能不能再推广？</strong>能不能概括成更普适的结论？</li>
+    <li><strong>怎么改进？</strong>怎样让它产生更大的实际影响？</li>
+    <li><strong>下一步做什么？</strong>如果这项研究交给你，你接下来会做什么？</li>
+  </ul>
+
+  <h2><span class="n">2</span>三遍读法</h2>
+  <p>有了心态还要有流程。滑铁卢大学 S. Keshav 在 <em>How to Read a Paper</em> 里把读论文拆成三遍：每一遍都比上一遍深，花的时间也差不多多一个数量级（图 1 下面的时间条是对数刻度）。每一遍结束都有一个出口，不值得就停在这里。</p>
+
+  <figure class="play wide" id="fig-passes" data-fig="./passes.js">
+    <div class="fig-head"><span class="fig-no">图 1</span><span>同一篇论文，三遍各读哪里、各花多久</span></div>
+    <div class="fig-body">
+      <div class="fig-main">
+        <canvas class="pages" aria-label="三页论文的版面示意"></canvas>
+        <canvas class="time" aria-label="三遍阅读各自的耗时"></canvas>
+      </div>
+      <div class="fig-side">
+        <div class="ctl-label">读第几遍</div>
+        <div class="seg pass"><button value="0">第一遍</button><button value="1">第二遍</button><button value="2">第三遍</button></div>
+        <div class="ctl-label">按顺序读</div>
+        <div class="btns"><button class="btn next">下一块 →</button></div>
+        <p class="readout" aria-live="polite"></p>
+      </div>
+    </div>
+    <figcaption>绿色是这一遍要读的块，蓝色是前面已经读过的，灰色是还没碰的；点页面上任意一块看这一遍对它做什么，红框是选中的那一类。第二遍起页边多出来的记号是批注。</figcaption>
+  </figure>
+
+  <h3>第一遍：鸟瞰全貌（5–10 分钟）</h3>
+  <p>目标是很快知道这篇讲什么，判断值不值得再花时间。哈佛给新生的阅读建议里叫它“预读”（previewing），是一回事。<button class="try" data-target="#fig-passes" data-set='{"pass":0,"sel":"intro"}'>看第一遍读哪里</button></p>
+  <ol>
+    <li>仔细读<strong>标题、摘要和引言</strong>。</li>
+    <li>只看<strong>章节和小节的标题</strong>，正文先不读，记下骨架。</li>
+    <li>直接跳到<strong>结论</strong>。</li>
+    <li>扫一眼<strong>参考文献</strong>，看有没有认识的作者和论文。<button class="try" data-target="#fig-passes" data-set='{"pass":0,"sel":"refs"}'>参考文献在哪</button></li>
+  </ol>
+  <p>读完应该能回答五个 C：<strong>类别</strong>（Category，提出新方法？分析已有系统？）、<strong>背景</strong>（Context，解决什么问题、和哪些研究相关）、<strong>正确性</strong>（Correctness，假设看着合理吗）、<strong>贡献</strong>（Contribution，最主要的一条是什么）、<strong>清晰度</strong>（Clarity，写得好懂吗）。答完就可以决定：放下，还是读第二遍。</p>
+
+  <h3>第二遍：抓住内容，放过细节（约 1 小时）</h3>
+  <p>过了第一遍的筛选，这一遍要掌握主要内容，但公式证明和实现细节先不纠结。<button class="try" data-target="#fig-passes" data-set='{"pass":1}'>看第二遍读哪里</button></p>
+  <ol>
+    <li><strong>仔细看图表。</strong>它们往往是核心结果最直观的样子。看清坐标轴标的是什么、有没有误差棒、和谁对比——研究严不严谨，从这些细节就看得出来。<button class="try" data-target="#fig-passes" data-set='{"pass":1,"sel":"fig"}'>指一下图</button></li>
+    <li><strong>边读边批注。</strong>别只拿荧光笔划线，那是一种被动的“伪努力”。拿笔在页边写下问题、用一句话总结关键论点、标出重要的参考文献；给自己定一套记号（比如星号标关键想法），等于在和作者对话。</li>
+  </ol>
+  <p>读完第二遍，应该能向领域外的人讲清楚这篇的主要观点、论证过程和核心发现。和你的研究相关、但不是核心的论文，读到这里通常就够了。</p>
+
+  <h3>第三遍：深入理解，虚拟重现（1–5 小时）</h3>
+  <p>最费时也最关键的一遍，目标是完全吃透并能批判性地分析。核心技巧是<strong>虚拟重现</strong>（virtually re-implement）：<button class="try" data-target="#fig-passes" data-set='{"pass":2,"sel":"eq"}'>看第三遍怎么读公式</button></p>
+  <ol>
+    <li><strong>设身处地。</strong>假如你是作者，从同一个问题出发，你会怎么做实验、怎么推公式、怎么呈现结果？</li>
+    <li><strong>挑战假设。</strong>审视、质疑文中的每一个假设和论断。</li>
+    <li><strong>对比反思。</strong>把你“重现”出来的版本和论文对照。差别在哪，创新点就在哪，藏起来的缺陷和没写明的假设也在哪。</li>
+    <li><strong>记下新想法。</strong>这个过程里很可能冒出新的研究点子，马上记下来。</li>
+  </ol>
+  <p>读完第三遍，你应该能凭记忆重建整篇论文的结构，说出它的优点和缺点，并把它准确地放进整个知识体系里。</p>
+
+  <h2><span class="n">3</span>读完以后：织进知识网</h2>
+  <p>单篇读懂之后，还有几件事能让理解再上一层：</p>
+  <ul>
+    <li><strong>找重复和模式。</strong>作者反复用的词、例子和意象往往就是他想强调的重点，也可能暴露潜在的立场或偏见。</li>
+    <li><strong>放回背景里。</strong>它是什么时候、在哪里写的？这些因素怎样影响了这项研究？</li>
+    <li><strong>比较和对比。</strong>它和你读过的其他文献是什么关系：延续了一个趋势，还是开了新方向？比较之后才能准确地评估它的贡献——是提出了新想法、验证了旧想法，还是把不同的想法整合进了一个新框架。</li>
+  </ul>
+  <p>一个很好的练习是写一份<strong>单页评审</strong>（one page review）：一两句话概括论文的核心，列出主要论点和局限，最后写下你对它的想法质量和影响力的判断。写这一页会逼着你把上面所有的步骤都走一遍。</p>
+
+  <h2><span class="n">4</span>找资料</h2>
+  <p>第二遍里标出来的参考文献，就是下一批要找的资料：顺着引用往回找，比漫无目的地搜索高效得多。另一类常要找的是演讲和视频的文字稿。</p>
+  <h3>TED 演讲的字幕</h3>
+  <p>TED直接搜transcript，如果只有youtube上有就用<a href="https://downsub.com/">这个</a>下字幕。</p>
+  <p>TED 官网的演讲页自带文字稿（Transcript），可以切换语言；只在 YouTube 上能找到的，把视频链接贴进 DownSub，就能把字幕下载成文本文件。</p>
+
+  <h2><span class="n">5</span>画图</h2>
+  <p>打美赛期间总结出来的一些科研绘图。先按要画的东西挑工具：</p>
+
+  <figure class="play wide" id="fig-tools" data-fig="./tools.js">
+    <div class="fig-head"><span class="fig-no">图 2</span><span>这张图用什么画？</span></div>
+    <div class="fig-body stack"><div class="fig-main"><div class="walk"></div></div></div>
+    <figcaption>点红色的按钮选分支；走过的步骤留在上面，点前面别的按钮就从那里改道。</figcaption>
+  </figure>
+
+  <h3>流程图：draw.io</h3>
+  <p><a href="https://app.diagrams.net/">draw.io</a>：流程图神中神，上限极高。</p>
+  <p>比完赛看到drawio居然有<a href="https://github.com/DayuanJiang/next-ai-draw-io">ai生成流程图的项目</a>。不过现在的大模型如gemini-3.0-pro已经能直接生成drawio的xml格式文件，可以直接导入drawio，或者先试用nanobanana生成图片后给ai转xml。</p>
+  <p>要输入公式要开启 Extras → Mathematical Typesetting：<button class="try" data-target="#fig-tools" data-set='{"path":["drawio","math"]}'>在图 2 里看</button></p>
+  <ul>
+    <li>反引号 <code>`</code> 包裹是行内公式，双 <code>$$</code> 包裹是单行公式。</li>
+    <li>text一般不要从别的地方复制，会有格式，可以粘贴到浏览器地址栏清除一下格式。</li>
+    <li>遇到不显示公式的情况，可以选中text，点击菜单栏 <code>&lt;&gt;</code> 查看代码按钮，然后删除html相关样式。</li>
+    <li>遇到有底色的情况时，可以 <code>command+E</code> 打开style源码面板进行编辑，删除底色样式。</li>
+  </ul>
+
+  <h3>数据图：画图和计算分开</h3>
+  <p>画图和计算脚本一定要分开，计算脚本只导出csv不参与画图，不然每次都要跑一次再画图很蠢。</p>
+  <p>算一笔账就清楚了。设计算跑一次要 \(C\) 分钟，改一次图（改代码、出图、看一眼）要 \(p\) 分钟，一张图前后改了 \(n\) 次：</p>
+  <p>\[\text{放一起}:\ n\,(C+p)\qquad\qquad \text{分开}:\ C+n\,p\qquad\qquad \text{省下}:\ (n-1)\,C\]</p>
+  <p>只画一次两种一样；从第二次改图开始，每改一次就省下一整轮计算。而一张能放进论文的图，改上十几二十次是常事。</p>
+
+  <figure class="play wide" id="fig-cost" data-fig="./cost.js">
+    <div class="fig-head"><span class="fig-no">图 3</span><span>改图次数越多，分开省得越多</span></div>
+    <div class="fig-body">
+      <div class="fig-main"><canvas aria-label="总耗时随改图次数变化"></canvas></div>
+      <div class="fig-side">
+        <label class="ctl">算一次 <input name="C" type="range" min="1" max="120" step="1"><output for="C"></output></label>
+        <label class="ctl">改一次图 <input name="p" type="range" min="1" max="20" step="1"><output for="p"></output></label>
+        <label class="ctl">改图次数 <input name="n" type="range" min="1" max="40" step="1"><output for="n"></output></label>
+        <p class="readout" aria-live="polite"></p>
+      </div>
+    </div>
+    <figcaption>黑线是放在一个脚本里（每次改图都重跑计算），绿线是拆开（计算只跑一次，画图脚本读 csv）。拖红线改“改图次数”，两条线之间的绿色竖条就是省下的时间。</figcaption>
+  </figure>
+  <p><button class="try" data-target="#fig-cost" data-set='{"n":1}'>只画一次</button><button class="try" data-target="#fig-cost" data-set='{"C":60,"n":20}'>计算要跑一小时，改 20 次</button><button class="try" data-target="#fig-cost" data-set='{"C":2,"p":3,"n":10}'>计算只要两分钟</button></p>
+  <p>计算很快的时候差别不大，但计算一慢起来，放在一起的代价就是线性地往上涨。拆开还有个附带的好处：csv 就是一份存档，换个库、换台电脑都能直接重画。</p>
+  <p>常见的 python 绘图库：</p>
+  <ul class="libs">
+    <li><a href="https://seaborn.pydata.org/">Seaborn</a>（<a href="https://matplotlib.org/">Matplotlib</a> 的封装）</li>
+    <li><a href="https://plotly.com/">Plotly</a>（网页版图片，可缩放或开关图例）</li>
+    <li><a href="https://streamlit.io/">Streamlit</a>（可以编辑数据动态出图）</li>
+    <li><a href="https://veusz.github.io/">Veusz</a>：自己可编辑的画图脚本，可以导入 csv 手动调整图片样式</li>
+    <li>比完赛看到的逆天<a href="https://www.bilibili.com/video/BV1h1FHzwEfA">数据修正项目</a></li>
+  </ul>
+
+  <h3>改字和排版：svg</h3>
+  <p>代码绘图时尽量导出为svg，便于标题等文字的修改和排版。<button class="try" data-target="#fig-tools" data-set='{"path":["svg"]}'>在图 2 里看</button></p>
+  <ul>
+    <li><a href="https://www.svgviewer.dev/">svg 代码编辑器</a></li>
+    <li><a href="https://boxy-svg.com/app">svg 可视化编辑器</a></li>
+    <li><a href="https://www.vectorpea.com/">在线 illustrator，有钢笔工具</a></li>
+  </ul>
+</main>
+<footer class="site"><a href="/">← 首页</a><span>Cr's Blog</span><span></span></footer>
+</body>
+</html>

@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>z 变换在哪里才算数 · Cr's Blog</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-screen-webfont/lxgwwenkaigbscreen.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<script type="importmap">{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js", "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/" } }</script>
+<link rel="stylesheet" href="/assets/site.css">
+<script type="module" src="/assets/page.js"></script>
+<style>
+  .presets { display: flex; flex-wrap: wrap; gap: .3rem; }
+  .presets button { font: .84rem/1.5 var(--sans); cursor: pointer; border: 1px solid color-mix(in srgb, var(--hand) 35%, transparent); background: transparent; color: var(--hand); border-radius: 999px; padding: .12rem .75rem; }
+  .presets button:hover { border-color: var(--hand); }
+  #zp .fig-main canvas.radius { margin-top: .6rem; }
+</style>
+</head>
+<body>
+<header class="site"><a class="name" href="/">Cr's Blog</a><nav><a href="/articles/">文章</a><a href="/essays/">随笔</a><a href="/notes/">速查</a><a href="/tools/">工具</a><a href="/archive/">归档</a></nav></header>
+<main class="post">
+  <div class="kicker"><span>信号与系统</span><span>2026-09-08</span></div>
+  <h1>z 变换在哪里才算数</h1>
+  <p class="dek">同一个分式可以是好几个序列的 z 变换。收敛域说清它是哪一个，也决定 DTFT 存不存在。</p>
+
+  <p>表里那一行 \(a^n u[n] \leftrightarrow \dfrac{1}{1-az^{-1}},\ |z|&gt;|a|\)，前半截谁都记得住，后半截的 \(|z|&gt;|a|\) 常被当成顺手抄上的条件。其实它是答案的一半：分式只说“级数要是收敛，和等于多少”，收敛域（ROC）说的是“在哪儿收敛”。少了后一半，连原来的序列是哪个都定不下来。</p>
+  <p>这篇从等比级数推起：先看一个极点的 ROC 从哪来，再看几个极点时 ROC 长什么样，最后落到一条判断 DTFT 存不存在的快速规则。</p>
+
+  <h2><span class="n">1</span>z 变换就是一个等比级数</h2>
+  <p>z 变换的定义是 \(X(z)=\sum_{n=-\infty}^{\infty}x[n]\,z^{-n}\)。代入 \(x[n]=a^n u[n]\)，单位阶跃 \(u[n]\) 把 \(n&lt;0\) 的项全清掉：</p>
+  <p>\[X(z)=\sum_{n=0}^{\infty}a^n z^{-n}=\underbrace{1}_{n=0}+\underbrace{\frac{a}{z}}_{n=1}+\underbrace{\frac{a^2}{z^2}}_{n=2}+\underbrace{\frac{a^3}{z^3}}_{n=3}+\cdots\]</p>
+  <p>每一项都是前一项乘上同一个数：\(\dfrac{a^2/z^2}{a/z}=\dfrac{a^3/z^3}{a^2/z^2}=\dfrac az\)。记公比 \(q=a/z\)，这就是等比级数</p>
+  <p>\[X(z)=\sum_{n=0}^{\infty}q^n=1+q+q^2+q^3+\cdots\]</p>
+  <p>剩下只有一个问题：这个无穷和等于多少，什么时候存在。</p>
+
+  <h2><span class="n">2</span>等比级数什么时候收敛</h2>
+  <p>先算有限项。前 \(N+1\) 项的部分和 \(S_N=1+q+\cdots+q^N\)，两边乘 \(q\) 得 \(qS_N=q+q^2+\cdots+q^{N+1}\)。两式相减，中间的项全部对消，只剩头尾：</p>
+  <p>\[S_N-qS_N=1-q^{N+1}\quad\Longrightarrow\quad S_N=\frac{1-q^{N+1}}{1-q}\qquad(q\ne1)\]</p>
+  <p>拿 \(q=\tfrac12\) 验一下：\(1+\tfrac12+\tfrac14=1.75\)，公式给 \(2\big(1-\tfrac18\big)=1.75\)。\(N\) 越大，和越贴近 2。</p>
+  <p>让 \(N\to\infty\)，式子里唯一会变的是 \(q^{N+1}\)。它趋于 0 当且仅当 \(|q|&lt;1\)，这时</p>
+  <p>\[\boxed{\;\sum_{n=0}^{\infty}q^n=\frac{1}{1-q},\qquad |q|&lt;1\;}\]</p>
+  <p>\(|q|\ge1\) 时通项 \(q^n\) 不趋于 0，部分和没有极限，级数发散，公式不再代表任何东西。\(|q|=1\) 也不行：\(q=1\) 时是 \(1+1+1+\cdots\)，\(q=-1\) 时部分和在 1 和 0 之间来回跳。</p>
+  <p>这里有个容易滑过去的细节：\(q\) 是复数，但 \(|q^{N+1}|=|q|^{N+1}\)，收敛只看 \(|q|\)，跟 \(q\) 的相位无关。放到 z 平面上，就是<strong>收敛与否只看 \(|z|\)</strong>，所以后面所有的 ROC 都是以原点为圆心的一圈一圈。</p>
+
+  <h2><span class="n">3</span>代回去：ROC 就是 |q| &lt; 1</h2>
+  <p>把 \(q=a/z\) 代回去，\(z^{-1}\) 就是 \(1/z\) 的记号：</p>
+  <p>\[X(z)=\frac{1}{1-\dfrac az}=\frac{1}{1-az^{-1}}=\frac{z}{z-a}\]</p>
+  <p>收敛条件翻译成 z 的语言：\(|q|&lt;1\iff\left|\dfrac az\right|&lt;1\iff|z|&gt;|a|\)。于是</p>
+  <p>\[\boxed{\;a^n u[n]\;\xleftrightarrow{\;\mathcal Z\;}\;\frac{1}{1-az^{-1}},\qquad |z|&gt;|a|\;}\]</p>
+  <p>分母为零的 \(z=a\) 是极点，那里公比的模正好是 1。所以极点一定落在 ROC 的边界上，ROC 本身绝不含极点。</p>
+  <p>代数字走一遍全链路。取 \(a=0.5,\ z=2\)，满足 \(|z|&gt;|a|\)：逐项加是 \(1+0.25+0.0625+\cdots\)，收敛到 \(\frac{1}{1-0.25}=\frac43\)；闭式 \(\frac{1}{1-0.5\cdot2^{-1}}\) 也是 \(\frac43\)。<button class="try" data-target="#surf" data-set='{"z":2,"a":0.5}'>放进图里</button></p>
+  <p>再取 \(z=0.4\)，在 ROC 外：级数是 \(1+1.25+1.5625+\cdots\)，一路涨；闭式却照样算出 \(\frac{1}{1-1.25}=-4\)。<strong>闭式在那里不代表级数</strong>，这就是答案里必须写 ROC 的原因。<button class="try" data-target="#surf" data-set='{"z":0.4,"a":0.5}'>放进图里</button></p>
+
+  <figure class="play wide" id="surf" data-fig="./surface.js">
+    <div class="fig-head"><span class="fig-no">图 1</span><span>\(|X(z)|=\left|\dfrac{z}{z-a}\right|\) 在 z 平面上的样子</span></div>
+    <div class="fig-body">
+      <div class="fig-main"><canvas class="surf" aria-label="|X(z)| 曲面，可拖动旋转"></canvas></div>
+      <div class="fig-side">
+        <div class="ctl-label">看的角度</div>
+        <div class="seg"><button value="tilt" aria-pressed="true">斜看</button><button value="top" aria-pressed="false">俯视</button></div>
+        <div class="ctl-label">探针和极点</div>
+        <label class="ctl">探针 z <input name="z" type="range" min="0.1" max="2.4" step="0.01" value="2"><output for="z"></output></label>
+        <label class="ctl">极点 a <input name="a" type="range" min="0.2" max="0.9" step="0.05" value="0.5"><output for="a"></output></label>
+        <p class="readout" aria-live="polite"></p>
+        <div class="sums" style="font-size:.8rem;color:var(--mute);font-variant-numeric:tabular-nums"></div>
+        <svg class="chart" viewBox="0 0 240 130" style="width:100%;margin-top:.6rem"></svg>
+        <div style="font-size:.72rem;color:var(--mute)">部分和 S₀…S₉；虚线是闭式的值</div>
+      </div>
+    </div>
+    <figcaption>红点是探针，只在正实轴上走，滑块拖它；另一个滑块挪极点 a。浅绿是 \(|z|&gt;|a|\)：级数收敛，曲面高度就是级数的和。灰色是 \(|z|&lt;|a|\)：闭式照样算得出数，级数早就发散了。尖顶是极点 \(z=a\)（截在 4），原点那个坑是零点。蓝线是单位圆，沿它走一圈的高度就是第 6 节的 \(|X(e^{j\omega})|\)。拖动画面可以转着看。</figcaption>
+  </figure>
+
+  <p>俯视时，绿色和灰色的分界正好是半径 \(|a|\) 的圆。<button class="try" data-target="#surf" data-set='{"view":"top"}'>俯视</button>把极点往单位圆推，尖顶就压到蓝线旁边，蓝线在 \(z=1\) 那一侧被抬得很高：\(|X(e^{j0})|=\frac{1}{1-a}\)，\(a=0.9\) 时是 10。这就是“极点靠近单位圆，对应频率处增益很大”。<button class="try" data-target="#surf" data-set='{"a":0.9,"z":1,"view":"tilt"}'>a = 0.9</button></p>
+
+  <h2><span class="n">4</span>同一个分式，另一个序列</h2>
+  <p>再算一个只活在负半轴上的序列 \(x[n]=-a^n u[-n-1]\)（只有 \(n\le-1\) 的项）。换下标 \(m=-n\)：</p>
+  <p>\[X(z)=-\sum_{n=-\infty}^{-1}a^n z^{-n}=-\sum_{m=1}^{\infty}\Big(\frac za\Big)^m=-\frac{z/a}{1-z/a}=\frac{z}{z-a}=\frac{1}{1-az^{-1}}\]</p>
+  <p>分式一模一样，只是这回公比是 \(z/a\)，收敛要求 \(|z|&lt;|a|\)，ROC 在圆<strong>里面</strong>。</p>
+  <div class="table-wrap"><table>
+    <thead><tr><th>序列</th><th>z 变换</th><th>ROC</th><th>边性</th></tr></thead>
+    <tbody>
+      <tr><td>\(a^n u[n]\)</td><td>\(\dfrac{1}{1-az^{-1}}\)</td><td>\(|z|&gt;|a|\)</td><td>右边（因果）</td></tr>
+      <tr><td>\(-a^n u[-n-1]\)</td><td>\(\dfrac{1}{1-az^{-1}}\)</td><td>\(|z|&lt;|a|\)</td><td>左边（反因果）</td></tr>
+    </tbody>
+  </table></div>
+  <p>所以只给分式不给 ROC，反变换是做不出来的。直观地看：右边序列的项是 \(z^{-n}\)、\(n\) 往正无穷走，要 \(|z|\) 够大才压得住；左边序列的项是 \(z^{|n|}\)，要 \(|z|\) 够小才压得住。<strong>右边序列的 ROC 在圆外，左边序列的 ROC 在圆内。</strong></p>
+
+  <h2><span class="n">5</span>几个极点：ROC 是一个环</h2>
+  <p>有理的 \(X(z)\) 做部分分式，拆成一堆一阶项之和，每一项都是上面两种之一：要么 ROC 在它的极点圆外，要么在圆内。整体收敛要求每一项都收敛，所以总的 ROC 是各项 ROC 的<strong>交集</strong>。“几个圆外”和“几个圆内”交起来，只能是一个环带 \(r_{\text{内}}&lt;|z|&lt;r_{\text{外}}\)（内半径可以是 0，外半径可以是 ∞）。由此有三条：</p>
+  <ul>
+    <li>ROC 是以原点为圆心的环，只和 \(|z|\) 有关；</li>
+    <li>ROC 里没有极点，极点只会出现在环的边上；</li>
+    <li>ROC 是连通的一整段，不会是两个不挨着的环。</li>
+  </ul>
+  <p>于是 \(N\) 种不同的极点半径把 \(|z|\) 这条线切成 \(N+1\) 段，每一段对应一个不同的序列。拿两个极点的 \(X(z)=\dfrac{1}{(1-\frac12z^{-1})(1-2z^{-1})}\) 看，拆开是</p>
+  <p>\[X(z)=\frac{-1/3}{1-\frac12z^{-1}}+\frac{4/3}{1-2z^{-1}}\]</p>
+  <div class="table-wrap"><table>
+    <thead><tr><th>ROC</th><th>序列</th><th>边性</th></tr></thead>
+    <tbody>
+      <tr><td>\(|z|&gt;2\)</td><td>\(-\frac13\big(\frac12\big)^n u[n]+\frac43\,2^n u[n]\)</td><td>右边，\(2^n\) 一路涨</td></tr>
+      <tr><td>\(\frac12&lt;|z|&lt;2\)</td><td>\(-\frac13\big(\frac12\big)^n u[n]-\frac43\,2^n u[-n-1]\)</td><td>双边，两头都衰减</td></tr>
+      <tr><td>\(|z|&lt;\frac12\)</td><td>\(\frac13\big(\frac12\big)^n u[-n-1]-\frac43\,2^n u[-n-1]\)</td><td>左边</td></tr>
+    </tbody>
+  </table></div>
+  <p>三个序列长得完全不同，z 变换的分式却是同一个。<span class="mn">验算一个点：\(z=1\) 落在中间那段，闭式给 \(\frac{1}{(1-\frac12)(1-2)}=-2\)；双边序列逐项加，\(n\ge0\) 的部分是 \(-\frac13\cdot2=-\frac23\)，\(n\le-1\) 的部分是 \(-\frac43\sum_{m\ge1}2^{-m}=-\frac43\)，合起来正好 \(-2\)。</span></p>
+
+  <h2><span class="n">6</span>单位圆在 ROC 里，DTFT 才存在</h2>
+  <p>DTFT 就是把 z 变换限制在单位圆 \(z=e^{j\omega}\) 上。单位圆落在 ROC 里，级数在那儿绝对收敛，\(X(e^{j\omega})\) 就是 \(X(z)\) 在圆上的值；单位圆不在 ROC 里，级数在圆上不收敛，DTFT 就不存在。<span class="mn">这里的“存在”指级数在单位圆上绝对收敛。像 \(u[n]\) 这样极点压在单位圆上的，会用带冲激的广义 DTFT 来写，那是另一回事。</span>对 LTI 系统也一样：BIBO 稳定等价于 \(\sum|h[n]|&lt;\infty\)，等价于 \(H(z)\) 的 ROC 含单位圆。</p>
+  <p>直接算 DTFT 的时候其实做过同一件事：</p>
+  <p>\[X(e^{j\omega})=\sum_{n=0}^{\infty}\big(ae^{-j\omega}\big)^n=\frac{1}{1-ae^{-j\omega}},\qquad |a|&lt;1\]</p>
+  <div class="table-wrap"><table>
+    <thead><tr><th></th><th>DTFT</th><th>z 变换</th></tr></thead>
+    <tbody>
+      <tr><td>级数</td><td>\(\sum(ae^{-j\omega})^n\)</td><td>\(\sum(a/z)^n\)</td></tr>
+      <tr><td>公比的模</td><td>\(|q|=|a|\)，锁死</td><td>\(|q|=|a|/|z|\)，随 \(|z|\) 调</td></tr>
+      <tr><td>收敛条件</td><td>\(|a|&lt;1\)，不满足就没有</td><td>\(|z|&gt;|a|\)，写进答案就是 ROC</td></tr>
+      <tr><td>结果</td><td>\(\dfrac{1}{1-ae^{-j\omega}}\)</td><td>\(\dfrac{1}{1-az^{-1}}\)</td></tr>
+    </tbody>
+  </table></div>
+  <p>同一个求和技巧，z 变换多了一个能调的 \(|z|\)：收敛条件从一道过不去就作废的门槛，变成了答案的一半。</p>
+
+  <h2><span class="n">7</span>夹 1 法则</h2>
+  <p>于是“DTFT 存不存在 / 系统稳不稳定”这个问题，就变成了“\(N+1\) 段里哪一段含 \(|z|=1\)”。我的总结：求极点半径，取比 1 小的里面最大的、比 1 大的里面最小的，这两者夹住的就是“DTFT 存在”的 ROC。</p>
+  <p>写成式子，设极点半径从小到大是 \(r_1&lt;r_2&lt;\cdots&lt;r_N\)：</p>
+  <p>\[\text{ROC}:\quad r_{\text{下}}\;&lt;\;|z|\;&lt;\;r_{\text{上}}\]</p>
+  <p class="defs">\(r_{\text{下}}\)：比 1 小的半径中最大的那个<br>\(r_{\text{上}}\)：比 1 大的半径中最小的那个</p>
+  <ul>
+    <li>没有比 1 小的极点：下界取 0，ROC 是 \(|z|&lt;r_{\text{上}}\)，在圆内，左边序列。<button class="try" data-target="#zp" data-set='{"poles":"1.5,2,3","q":"dtft"}'>试试</button></li>
+    <li>没有比 1 大的极点：上界取 ∞，ROC 是 \(|z|&gt;r_{\text{下}}\)，在圆外，右边序列。<button class="try" data-target="#zp" data-set='{"poles":"0.3,0.5,0.8","q":"dtft"}'>试试</button></li>
+  </ul>
+
+  <figure class="play wide" id="zp" data-fig="./zplane.js">
+    <div class="fig-head"><span class="fig-no">图 2</span><span>z 平面和半径线</span></div>
+    <div class="fig-body">
+      <div class="fig-main"><canvas class="plane" aria-label="z 平面，可拖动极点"></canvas><canvas class="radius" aria-label="半径线"></canvas></div>
+      <div class="fig-side">
+        <div class="ctl-label">问的是</div>
+        <div class="seg" data-k="q">
+          <button value="dtft">DTFT 存在 / 稳定</button><button value="causal">因果</button><button value="left">左边序列</button><button value="two">双边（有几个）</button>
+        </div>
+        <div class="ctl-label">载入极点</div>
+        <div class="presets"><button data-poles="1/3,2,3">1/3, 2, 3</button><button data-poles="0.5,1,2">1/2, 1, 2</button><button data-poles="0.5,0.8,3">0.5, 0.8, 3</button></div>
+        <p class="readout" aria-live="polite"></p>
+      </div>
+    </div>
+    <figcaption>红色 × 是极点：在平面上拖改位置，在下面的半径线上拖 ▼ 只改半径，拖到单位圆附近会吸上去（键盘：Tab 进画布，←→ 改半径，[ ] 换极点）。虚线圈是每个极点所在的半径，蓝圈是单位圆，绿色是 ROC。下面那条线只看 \(|z|\)：“夹 1”就是在这条线上找包住 1 的那一段。</figcaption>
+  </figure>
+
+  <p>拿做过的两道题验一下（点一行，图就换成那组极点）：</p>
+  <div class="table-wrap"><table>
+    <thead><tr><th>极点半径</th><th>夹 1 结果</th><th>边性</th></tr></thead>
+    <tbody>
+      <tr data-target="#zp" data-set='{"poles":"1/3,2,3","q":"dtft"}'><td>\(\tfrac13,2,3\)（Q5.1）</td><td>\(\tfrac13&lt;|z|&lt;2\)</td><td>双边</td></tr>
+      <tr data-target="#zp" data-set='{"poles":"0.5,1,2","q":"dtft"}'><td>\(\tfrac12,1,2\)（Q5.3 的 Y）</td><td><s>\(1&lt;|z|&lt;2\)</s> 不存在</td><td>—</td></tr>
+    </tbody>
+  </table></div>
+  <p><span class="mn">这里错过一次。第一次写成了 \(1&lt;|z|&lt;2\)，表里划掉的就是。</span>Q5.3 的 \(Y\) 一开始我只看见 \(\tfrac12\) 和 \(2\)，漏了 \(z=1\) 这个极点本身半径就是 1。这正好引出下一条。</p>
+
+  <h3>极点压在单位圆上：直接判死</h3>
+  <p>如果有极点半径恰好等于 1，比如 \(H(z)\) 有极点 \(z=1\)：ROC 不能含极点，而单位圆正好穿过这个极点，所以<strong>没有任何一段 ROC 能包住整条单位圆</strong>，DTFT 不存在、系统不稳定，不用再挑环带了。<button class="try" data-target="#zp" data-set='{"poles":"0.5,1,2","q":"dtft"}'>试试</button></p>
+  <p>\[\exists\ \text{极点}:\ |z_p|=1\;\Longrightarrow\;\text{不稳定（DTFT 不存在）}\]</p>
+
+  <h3>夹 1 只管“DTFT 存在 / 稳定”这一种问法</h3>
+  <p>候选区间的构造永远一样（\(N\) 种半径切出 \(N+1\) 段），挑哪一段要看题目问什么：</p>
+  <div class="table-wrap"><table>
+    <thead><tr><th>题目问</th><th>挑哪段</th><th>是不是夹 1</th></tr></thead>
+    <tbody>
+      <tr data-target="#zp" data-set='{"q":"dtft"}'><td>DTFT 存在 / 稳定</td><td>含 \(|z|=1\) 的那段</td><td>就是夹 1</td></tr>
+      <tr data-target="#zp" data-set='{"q":"causal"}'><td>因果</td><td>最外极点之外 \(|z|&gt;r_N\)</td><td>不是，看最外的极点</td></tr>
+      <tr data-target="#zp" data-set='{"q":"left"}'><td>左边序列</td><td>最内极点之内 \(|z|&lt;r_1\)</td><td>不是</td></tr>
+      <tr data-target="#zp" data-set='{"q":"two"}'><td>双边</td><td>任意相邻两个半径之间（数个数用）</td><td>不是</td></tr>
+    </tbody>
+  </table></div>
+  <p><span class="mn">同一组极点 \(\tfrac13,2,3\)：问 DTFT 是 \((\tfrac13,2)\)；问因果是 \((3,\infty)\)；问双边有几个是 2 个。</span><strong>先读题问什么，再选挑法；夹 1 只是其中一条。</strong>把“因果”和“稳定”合起来，就得到那条常用结论：因果系统的 ROC 在最外极点之外，要它含单位圆，最外的极点就得在圆内——<strong>因果且稳定 ⟺ 所有极点都在单位圆内</strong>。</p>
+
+  <h2><span class="n">8</span>30 秒自测</h2>
+  <p>极点在 \(z=0.5,\ 0.8,\ 3\)：① DTFT 存在的 ROC？② 因果系统的 ROC？③ 能否因果且稳定？<button class="try" data-target="#zp" data-set='{"poles":"0.5,0.8,3","q":"dtft"}'>放进图里自己验</button></p>
+  <details><summary>答案</summary><p>① \(0.8&lt;|z|&lt;3\)，双边。② \(|z|&gt;3\)，右边。③ 不能：有极点 3 在单位圆外，因果的 ROC \(|z|&gt;3\) 包不住单位圆。</p></details>
+</main>
+<footer class="site"><a href="/">← 首页</a><span>Cr's Blog</span><a href="/">首页 →</a></footer>
+</body>
+</html>

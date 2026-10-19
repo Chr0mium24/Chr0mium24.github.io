@@ -6,29 +6,28 @@
 <title>Cr's Blog</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-screen-webfont/lxgwwenkaigbscreen.css">
 <link rel="stylesheet" href="/assets/site.css">
-<script type="module" src="/assets/home.js"></script>
 <script type="module" src="/assets/page.js"></script>
+<script type="module" src="/assets/home.js"></script>
 </head>
 <body>
-<header class="site"><a class="name" href="/">Cr's Blog</a><nav><a href="#essays">随笔</a><a href="#notes">笔记</a><a href="#tools">小工具</a></nav></header>
+<header class="site"><a class="name" href="/">Cr's Blog</a><nav><a href="/articles/">文章</a><a href="/essays/">随笔</a><a href="/notes/">速查</a><a href="/tools/">工具</a><a href="/archive/">归档</a></nav></header>
 <main class="home">
-  <p class="intro">随笔，和能拖着玩的笔记。<span class="hand-dot"></span>红色的东西都能动，卡片上的图在首页就能玩。</p>
-  <div class="home-grid">
-    <section id="notes">
-      <div class="col-h"><span>能 玩 的</span><span id="ncount"></span></div>
-      <div class="chips seg" id="chips"></div>
-      <div class="cards" id="cards"></div>
-      <div class="col-h" style="margin-top:3rem"><span>其 余 笔 记</span><span id="dcount"></span></div>
-      <div class="docs" id="docs"></div>
-      <div class="col-h" id="tools" style="margin-top:3rem"><span>小 工 具</span><span id="tcount"></span></div>
-      <div class="tools" id="tool-list"></div>
-    </section>
-    <aside id="essays">
-      <div class="col-h"><span>随 笔</span><span>短的整篇放这儿</span></div>
-      <div class="essays" id="essay-list"></div>
-    </aside>
+  <p class="intro rise">笔记、随笔和一些小工具。</p>
+  <div class="board rise" id="board" style="--i:1" aria-label="速查">
+    <span class="board-label">速查</span>
+    <div class="board-window"><ul class="board-list"></ul></div>
+    <span class="board-nav"><button class="board-prev" aria-label="上一条">‹</button><button class="board-next" aria-label="下一条">›</button></span>
+    <a class="board-all" href="/notes/"></a>
   </div>
+  <section class="latest">
+    <div class="col-h rise" style="--i:2"><span>最 近</span></div>
+    <div class="feature" id="feature"></div>
+  </section>
+  <section class="more rise" style="--i:6">
+    <div class="tabs seg" id="tabs"><button value="articles" aria-pressed="true">文章</button><button value="essays" aria-pressed="false">随笔</button><button value="tools" aria-pressed="false">工具</button></div>
+    <div class="tab-stage" id="stage"></div>
+  </section>
 </main>
-<footer class="site"><span>Cr's Blog</span><span>没有分页，往下就是全部</span></footer>
+<footer class="site"><span>Cr's Blog</span><a href="/archive/">归档 →</a></footer>
 </body>
 </html>

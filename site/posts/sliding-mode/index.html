@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>从 Bang-bang 到滑模 · Cr's Blog</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-screen-webfont/lxgwwenkaigbscreen.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="/assets/site.css">
+<script type="module" src="/assets/page.js"></script>
+<style>
+  .ctl[hidden] { display: none; }
+  .ph-row { display: grid; grid-template-columns: minmax(0, 300px) minmax(0, 1fr); gap: 1.2rem; align-items: start; margin-top: .8rem; }
+  .ph-row .readout { margin-top: 0; border-top: 0; padding-top: 0; }
+  .ph-cap { font-size: .74rem; color: var(--mute); margin-top: .2rem; }
+  @media (max-width: 40rem) { .ph-row { grid-template-columns: minmax(0, 1fr); } }
+</style>
+</head>
+<body>
+<header class="site"><a class="name" href="/">Cr's Blog</a><nav><a href="/articles/">文章</a><a href="/essays/">随笔</a><a href="/notes/">速查</a><a href="/tools/">工具</a><a href="/archive/">归档</a></nav></header>
+<main class="post">
+  <div class="kicker"><span>控制</span><span>2026-04-14</span></div>
+  <h1>从 Bang-bang 到滑模</h1>
+  <p class="dek">开关控制又快又硬，代价是抖。滞环、边界层和后来的几种滑模，各拿什么换掉了抖振？</p>
+
+  <p>拿一个最简单的二阶对象说事：\(\ddot y=u+d(t)\)。\(u\) 是控制量，执行器有上限 \(|u|\le K\)；\(d\) 是扰动，只知道它有上界、不知道具体多大，负载、摩擦、没建进模型的那部分都算在里面。目标是让输出 \(y\) 跟住参考 \(r\)。下面几种控制器都从同一个量出发，区别只在一件事：<strong>怎么把它变成 u</strong>。</p>
+
+  <h2><span class="n">1</span>先把二阶问题压成一阶</h2>
+  <p>记误差 \(e=y-r\)，定义滑模面</p>
+  <p>\[s=c\,e+\dot e,\qquad c&gt;0\]</p>
+  <p>要是能一直保持 \(s=0\)，就有 \(\dot e=-c\,e\)，误差按 \(e(t)=e(0)\,e^{-ct}\) 指数衰减，时间常数 \(1/c\)。这条式子里根本没有 \(d\)：只要待在 \(s=0\) 上，扰动就被挡在外面。于是问题变成“怎么把 \(s\) 推到 0 并留在那儿”。对 \(s\) 求导：</p>
+  <p>\[\dot s=c\,\dot e+\ddot e=u+\underbrace{d-\ddot r+c\,\dot e}_{\text{控制器不知道的部分}}\]</p>
+  <p>\(u\) 直接出现在 \(\dot s\) 里，扰动也和 \(u\) 从同一个口进来（这类扰动叫匹配扰动）。所以只要 \(u\) 够大，就压得住它。</p>
+
+  <h2><span class="n">2</span>Bang-bang：全力往回推</h2>
+  <p>最直接的做法：\(s\) 在哪边，就用最大的力往另一边推。</p>
+  <p>\[u_{BB}=-K\,\text{sgn}(s)=\begin{cases}-K &amp; s&gt;0\quad\text{全力反向输出（最大负向力矩）}\\ +K &amp; s&lt;0\quad\text{全力正向输出（最大正向力矩）}\end{cases}\]</p>
+  <p>它为什么能把 \(s\) 推到 0？看 \(s\dot s\)：</p>
+  <p>\[s\dot s=-K|s|+s\,(d-\ddot r+c\dot e)\;\le\;-|s|\,\big(K-|d-\ddot r+c\dot e|\big)\]</p>
+  <p>只要 \(K&gt;|d-\ddot r+c\dot e|\)，\(s\dot s&lt;0\)，\(|s|\) 就一直在变小，并且在有限时间内到 0。这也是 \(K\) 的定法：K&gt;|外部扰动|+|模型不确定性|。</p>
+  <p>下面的相平面把过程分成两段：先是<strong>到达阶段</strong>，轨迹从红点出发冲向蓝色的直线 \(s=0\)；然后是<strong>滑动阶段</strong>，沿着这条线滑回原点，“滑模”这个名字就是这么来的。<button class="try" data-set='{"mode":"bang","ref":"step","e0":[-1,0]}'>试试阶跃</button><button class="try" data-set='{"mode":"bang","e0":[0.8,2.2]}'>换个起点</button></p>
+
+  <figure class="play wide" id="smc" data-fig="./smc.js">
+    <div class="fig-head"><span class="fig-no">图 1</span><span>\(\ddot y=u+d(t)\)，\(|u|\le K\)：五种控制器，同一组噪声</span></div>
+    <div class="fig-body">
+      <div class="fig-main">
+        <canvas class="time" aria-label="y、e、u 随时间的曲线"></canvas>
+        <div class="ph-row">
+          <div><canvas class="phase" aria-label="相平面，红点是初始状态，可拖动"></canvas><div class="ph-cap">相平面：横轴 e，纵轴 ė</div></div>
+          <p class="readout" aria-live="polite"></p>
+        </div>
+      </div>
+      <div class="fig-side">
+        <div class="ctl-label">控制器</div>
+        <div class="seg" data-k="mode"><button value="bang">Bang-bang</button><button value="hys">滞环</button><button value="bl">边界层</button><button value="ismc">积分滑模</button><button value="sta">超螺旋</button></div>
+        <div class="ctl-label">参考 r</div>
+        <div class="seg" data-k="ref"><button value="step">阶跃</button><button value="sine">正弦</button></div>
+        <div class="ctl-label">参数</div>
+        <label class="ctl">K 上限 <input name="K" type="range" min="1" max="10" step="0.5" value="6"><output for="K"></output></label>
+        <label class="ctl">c 斜率 <input name="c" type="range" min="0.5" max="6" step="0.1" value="2"><output for="c"></output></label>
+        <label class="ctl delta">Δ 滞环 <input name="delta" type="range" min="0" max="0.3" step="0.005" value="0.05"><output for="delta"></output></label>
+        <label class="ctl phi">Φ 边界层 <input name="phi" type="range" min="0.005" max="1" step="0.005" value="0.2"><output for="phi"></output></label>
+        <label class="ctl">扰动 d <input name="D" type="range" min="0" max="6" step="0.1" value="1.5"><output for="D"></output></label>
+        <label class="ctl">噪声 σ <input name="sig" type="range" min="0" max="0.03" step="0.001" value="0.002"><output for="sig"></output></label>
+      </div>
+    </div>
+    <figcaption>控制器每 1 ms 采样一次，算出的 u 保持到下一次采样。扰动是 \(d(t)=d\,(1+0.3\sin 2t)\)，上界 \(1.3d\)；噪声加在测量的 \(y\) 上（标准差 σ），速度测量的噪声是它的 5 倍，五种控制器用的是同一串噪声。上面三条：\(y\) 和虚线 \(r\)、放大看的误差 \(e\)（灰底那段算稳态误差）、控制量 \(u\)。开关打得太密时 \(u\) 会糊成一整块，那就是抖振。相平面里拖红点换初始状态；蓝线是 \(s=0\)，浅蓝带是滞环带 \(|s|\le\Delta\) 或边界层 \(|s|\le\Phi\)。</figcaption>
+  </figure>
+
+  <p>问题出在“无限快”上。理想的滑动要求 \(u\) 在 \(s=0\) 两侧无限快地来回切；真实控制器隔一个采样周期才动一次，\(s\) 就在 0 附近来回穿过，\(u\) 在 \(+K\) 和 \(-K\) 之间几乎每个周期都翻一次。图里 \(u\) 那一栏是一整块，6 秒里翻了几千次。Bang-Bang 控制是最原始的开关控制形式，因此有明显的高频抖振：执行器发热，激起模型里没有的高频动态，严重时直接烧掉功率器件。</p>
+  <p>抖振不是噪声造成的。把噪声关掉，开关次数一点没少，因为根子在采样。<button class="try" data-set='{"mode":"bang","sig":0}'>关掉噪声</button><span class="mn">噪声加大以后，Bang-bang 的误差反而出现了一点偏置。符号函数被噪声“抹”成了一段斜坡，平均下来相当于自带了一个宽度跟噪声差不多的边界层，第 4 节会看到边界层为什么会有偏置。</span>噪声大了，只是翻得更乱。<button class="try" data-set='{"mode":"bang","sig":0.01}'>噪声 0.01</button></p>
+  <p>于是有两种改进：滞环控制和带边界层的滑模。</p>
+
+  <h2><span class="n">3</span>滞环：让开关迟钝一点</h2>
+  <p>给 Bang-bang 加一个宽 \(2\Delta\) 的滞环，控制量只在越过带子的边时才换方向：</p>
+  <p>\[u_{hys}=\begin{cases}-K &amp; s&gt;+\Delta\quad\text{偏得太正，全力反向}\\ +K &amp; s&lt;-\Delta\quad\text{偏得太负，全力正向}\end{cases}\]</p>
+  <p>而在 \(-\Delta\le s\le+\Delta\) 区间内，控制量保持上一次的输出状态不变。滞环本质上是用一个宽 \(2\Delta\) 的“死区”，把纯符号函数控制变得不再那么敏感：在滞环带内部，系统靠惯性继续运行，从而减少开关频率。<span class="mn">一阶对象（比如电机的电流环）可以直接拿误差 \(e\) 做滞环：误差偏大时全力正向，偏小时全力反向。二阶对象要拿 \(s\) 做，否则只看位置不看速度，系统会来回振荡。</span></p>
+  <p>开关频率能估出来。带子里 \(\dot s\approx\pm K+d\)，从一条边走到另一条边，一次要 \(\frac{2\Delta}{K-d}\)，回来要 \(\frac{2\Delta}{K+d}\)，一个来回</p>
+  <p>\[T_{sw}\approx\frac{2\Delta}{K-d}+\frac{2\Delta}{K+d}\]</p>
+  <p>图里默认的 \(\Delta=0.05,\ K=6,\ d\approx1.5\)，算出来约 36 ms 一个来回，6 秒三百多次，和仿真数出来的对得上。<button class="try" data-set='{"mode":"hys","delta":0.05,"sig":0.002}'>试试滞环</button></p>
+  <p>Δ 的设置参考噪声水平和稳态误差带：Δ 越大，开关次数越少，系统越平稳，但跟踪精度会下降；Δ 取得越小，控制越精准，但开关频率会显著升高，容易产生高频抖振甚至烧毁功率器件。<button class="try" data-set='{"mode":"hys","delta":0.01}'>Δ = 0.01</button><button class="try" data-set='{"mode":"hys","delta":0.2}'>Δ = 0.2</button>“参考噪声水平”是因为：测量噪声在 \(s\) 上的幅度一旦比 Δ 大，带子就形同虚设，噪声自己会把开关触发起来。<button class="try" data-set='{"mode":"hys","delta":0.05,"sig":0.01}'>噪声比 Δ 大</button></p>
+  <p>滞环控制适合对响应速度要求高、对精确平稳性要求不高的场合。</p>
+
+  <h2><span class="n">4</span>边界层：离得近就别开关了</h2>
+  <p>另一条路是把符号函数换成饱和函数。把传统的 PD 控制 \(u_{PD}=-(K_p e+K_d\dot e)\) 引入边界层 \(\Phi\) 后，控制分成两部分：</p>
+  <p>\[u_{SMC}=-K\,\text{sat}(s/\Phi)=\begin{cases}-K\,\text{sgn}(s) &amp; |s|&gt;\Phi\quad\text{外部：满载输出}\\[.4ex] -\Big(\dfrac{Kc}{\Phi}e+\dfrac{K}{\Phi}\dot e\Big) &amp; |s|\le\Phi\quad\text{内部：超大增益的 PD}\end{cases}\]</p>
+  <p>可以看出，SMC 相当于用最大控制量 \(K\) 截断了 \(|s|&gt;\Phi\) 的部分，防止偏差过大时控制量过大烧毁电机；在 \(|s|=\Phi\) 处上下两段的值相同，函数还是连续的。K 的设置参考 \(K&gt;|\text{外部扰动}|+|\text{模型不确定性}|\)，因此SMC最后调好后会很“硬”。<button class="try" data-set='{"mode":"bl","phi":0.2,"sig":0.002}'>试试边界层</button></p>
+  <p>调参时，很多工程中会先按扰动上界设一个较大的 \(K\)，再通过 \(\Phi\) 来“软化”边界层内的行为：</p>
+  <ul>
+    <li>\(\Phi\) 越大，抖振越小，但进入边界层后控制变软，抗扰能力下降，稳态误差增大；<button class="try" data-set='{"mode":"bl","phi":0.5}'>Φ = 0.5</button></li>
+    <li>\(\Phi\) 越小，控制越硬，跟踪越准，但抖振会重新变严重，接近普通滑模。\(\Phi=0\) 时就退化成 Bang-bang；<button class="try" data-set='{"mode":"bl","phi":0.02,"sig":0.01}'>Φ = 0.02 加噪声</button></li>
+    <li>\(c\) 越大，滑模面越陡，响应越快，但 \(s=c\,e+\dot e\) 里的位置噪声被放大 \(c\) 倍，对噪声更敏感。<button class="try" data-set='{"mode":"bl","phi":0.2,"c":5,"sig":0.01}'>c = 5 加噪声</button></li>
+  </ul>
+  <p>稳态误差可以直接算。边界层里只有 P 和 D、没有 I。扰动近似是常值 \(d\) 时，平衡点上 \(\ddot y=0\)，所以 \(u=-d\)：</p>
+  <p>\[-K\frac{s}{\Phi}=-d\;\Longrightarrow\;s=\frac{\Phi d}{K}\;\Longrightarrow\;e=\frac{s}{c}=\frac{\Phi d}{Kc}\]</p>
+  <p>默认参数代进去是 \(\frac{0.2\times1.5}{6\times2}=0.025\)，图里 \(e\) 那条线就停在 \(+0.025\) 附近。系统最终停在边界层里 \(s=\Phi d/K\ne0\) 的地方，而不是滑模面上。</p>
+
+  <h2><span class="n">5</span>积分滑模：把常值扰动吃掉</h2>
+  <p>由于是 PD 控制没有 I，如果系统存在持续的外部恒定扰动，在边界层内就会产生稳态误差。于是 ISMC 加入积分项改进：</p>
+  <p>\[u_{ISMC}=-\Big(\frac{Kc}{\Phi}e+\frac{K}{\Phi}\dot e+\frac{KK_i}{\Phi}\int e\,dt\Big)\qquad(|s|\le\Phi)\]</p>
+  <p>平衡时积分项替 \(s\) 扛住了 \(-d\)，比例项和微分项都可以回到 0，误差也就回到 0。图里的实现把积分加在 \(s\) 上，展开后同样是 \(e\)、\(\dot e\)、\(\int e\) 三项；只在边界层里积分，免得到达阶段误差还很大时把积分项撑爆（积分饱和），回头再拖出一个大超调。<button class="try" data-set='{"mode":"ismc","phi":0.2,"sig":0.002,"c":2}'>试试积分滑模</button><button class="try" data-set='{"mode":"ismc","phi":0.5}'>Φ = 0.5 也不怕</button></p>
+  <p>它解决的是偏置，不是抖振：噪声大到盖过边界层时，积分滑模和边界层一样会重新开始翻。<button class="try" data-set='{"mode":"ismc","phi":0.02,"sig":0.01}'>Φ 太小加噪声</button></p>
+
+  <h2><span class="n">6</span>另外四种改进</h2>
+  <p>除此之外，SMC 还有四个针对具体问题的改进。</p>
+  <h3>终端滑模（TSMC）：让误差在有限时间内到 0</h3>
+  <p>线性滑模面 \(s=c\,e+\dot e=0\) 是一阶线性微分方程 \(\dot e=-c\,e\)，\(e\) 以指数形式收敛到 0，越接近 0 速度越慢，理论上永远到不了。引入非线性的分数次幂改变滑模面的形状：</p>
+  <p>\[s=\dot e+\beta\,e^{q/p},\qquad p&gt;q&gt;0\ \text{为奇数}\]</p>
+  <p>在 \(s=0\) 上 \(\dot e=-\beta e^{q/p}\)。\(e\) 很小时 \(e^{q/p}\) 比 \(e\) 大得多，\(e^{q/p}\) 对 \(e\) 的导数在原点附近急剧增大，“刹车”反而越踩越猛。解出来 \(e^{1-q/p}\) 随时间线性减小，误差在有限时间 \(t^*=\dfrac{|e(0)|^{1-q/p}}{\beta(1-q/p)}\) 内到 0。</p>
+  <h3>超螺旋算法（STA）：u 连续，但不用变软</h3>
+  <p>边界层虽然缓解了抖振，但它是以牺牲一定的抗扰精度为代价的（变软了）。超螺旋把控制量分成两部分：</p>
+  <p>\[u=u_1+u_2,\qquad u_1=-k_1\sqrt{|s|}\,\text{sgn}(s),\qquad \dot u_2=-k_2\,\text{sgn}(s)\]</p>
+  <p>积分项 \(u_2\) 把高频的 \(\text{sgn}(s)\) 积分了一次，输出变成连续的折线；\(u_1\) 含 \(\sqrt{|s|}\)，它对 \(s\) 的斜率 \(\frac{k_1}{2\sqrt{|s|}}\) 在 \(s\to0\) 时趋于无穷，保证了很强的鲁棒性。结果是：<strong>输出的控制量 \(u\) 是连续的</strong>。它在理论上消除了（或者说极大平滑了）抖振，同时依然保持了滑模对匹配扰动的鲁棒性。<button class="try" data-set='{"mode":"sta","sig":0.002}'>试试超螺旋</button><button class="try" data-set='{"mode":"sta","ref":"sine"}'>跟正弦</button><span class="mn">图里按常用的经验式取 \(k_1=1.5\sqrt L\)、\(k_2=1.1L\)，\(L\) 取 \(K\)。\(u\) 撞到上限时停止积分 \(u_2\)，和第 5 节一样是防积分饱和。</span></p>
+  <h3>自适应滑模（ASMC）：K 别一直拉满</h3>
+  <p>系统扰动时大时小，\(K\) 一直按最坏情况取，太大，浪费能量，也加重抖振。把增益变成动态的：</p>
+  <p>\[\dot{\hat K}=\gamma\,|s|\]</p>
+  <p>系统偏离滑模面（\(|s|\) 变大）说明干扰变大了，就把增益调高。</p>
+  <h3>全局滑模（GSMC）：从第一刻就在滑模面上</h3>
+  <p>滑模控制只有在状态到达 \(s=0\) 之后才具有抗干扰能力。从初始状态冲向滑模面的那段时间（到达阶段），系统容易受扰动影响。设计滑模面时加入一个随时间衰减的初始误差项：</p>
+  <p>\[s(t)=c\,e(t)+\dot e(t)-\big(c\,e(0)+\dot e(0)\big)e^{-\alpha t}\]</p>
+  <p>\(t=0\) 时 \(s(0)=0\)，系统一开始就在滑模面上，后面新加的这一项随时间衰减掉，滑模面慢慢变回原来的样子。</p>
+
+  <h2><span class="n">7</span>放在一起</h2>
+  <p>点一行，图就换成那种控制器（参数回到默认）：</p>
+  <div class="table-wrap"><table>
+    <thead><tr><th>方法</th><th>u 连续吗</th><th>开关</th><th>常值扰动下的误差</th><th>主要调</th></tr></thead>
+    <tbody>
+      <tr data-set='{"mode":"bang","K":6,"c":2,"D":1.5,"sig":0.002,"ref":"step","e0":[-1,0]}'><td>Bang-bang</td><td>否</td><td>几乎每个采样周期都翻</td><td>很小，但一直在抖</td><td>K</td></tr>
+      <tr data-set='{"mode":"hys","delta":0.05,"K":6,"c":2,"D":1.5,"sig":0.002,"ref":"step","e0":[-1,0]}'><td>滞环</td><td>否</td><td>降到 Δ 决定的频率</td><td>s 在 ±Δ 带里来回</td><td>K、Δ</td></tr>
+      <tr data-set='{"mode":"bl","phi":0.2,"K":6,"c":2,"D":1.5,"sig":0.002,"ref":"step","e0":[-1,0]}'><td>边界层</td><td>是</td><td>没有（噪声盖过 Φ 时回来）</td><td>Φd/(Kc)</td><td>K、Φ、c</td></tr>
+      <tr data-set='{"mode":"ismc","phi":0.2,"K":6,"c":2,"D":1.5,"sig":0.002,"ref":"step","e0":[-1,0]}'><td>积分滑模</td><td>是</td><td>同边界层</td><td>≈ 0</td><td>再加积分增益</td></tr>
+      <tr data-set='{"mode":"sta","K":6,"c":2,"D":1.5,"sig":0.002,"ref":"step","e0":[-1,0]}'><td>超螺旋</td><td>是</td><td>没有</td><td>≈ 0</td><td>k₁、k₂</td></tr>
+    </tbody>
+  </table></div>
+  <p>最后一个提醒：上面所有的鲁棒性都建立在 \(K\) 比扰动大的前提上。扰动上界一旦超过 \(K\)，哪种滑模都守不住滑模面。<button class="try" data-set='{"mode":"bl","phi":0.2,"D":5.5,"K":6}'>扰动比 K 大</button></p>
+</main>
+<footer class="site"><a href="/">← 首页</a><span>Cr's Blog</span><a href="/">首页 →</a></footer>
+</body>
+</html>

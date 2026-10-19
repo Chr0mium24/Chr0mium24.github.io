@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>从文件名里把金额加起来 · Cr's Blog</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-screen-webfont/lxgwwenkaigbscreen.css">
+<link rel="stylesheet" href="/assets/site.css">
+<script type="module" src="/assets/page.js"></script>
+</head>
+<body>
+<header class="site"><a class="name" href="/">Cr's Blog</a><nav><a href="/articles/">文章</a><a href="/essays/">随笔</a><a href="/notes/">速查</a><a href="/tools/">工具</a><a href="/archive/">归档</a></nav></header>
+<main class="post">
+  <div class="kicker"><span>速查</span><span>2025-04-09</span></div>
+  <h1>从文件名里把金额加起来</h1>
+  <div class="note-body">
+    <style>
+      .note-body .fsum textarea { display: block; width: 100%; min-height: 7.5rem; resize: vertical; font: .84rem/1.6 var(--mono); border: 1px solid color-mix(in srgb, var(--hand) 35%, transparent); border-radius: 6px; padding: .4rem .55rem; background: #fff; color: var(--ink); }
+      .note-body .fsum textarea:focus { outline: 2px solid color-mix(in srgb, var(--hand) 30%, transparent); border-color: var(--hand); }
+      .note-body .fsum .hits { list-style: none; padding: 0; margin: .7rem 0 0; font: .84rem/1.6 var(--mono); }
+      .note-body .fsum .hits li { display: flex; justify-content: space-between; gap: .8rem; padding: .15rem 0; border-bottom: 1px dashed var(--line); }
+      .note-body .fsum .fn { overflow-wrap: anywhere; min-width: 0; }
+      .note-body .fsum .sub { color: var(--ink2); white-space: nowrap; font-variant-numeric: tabular-nums; }
+      .note-body .fsum mark { background: none; color: inherit; border-radius: 3px; padding: 0 .1em; }
+      .note-body .fsum mark.on { background: color-mix(in srgb, var(--fig-ok) 22%, transparent); }
+      .note-body .fsum mark.off { color: var(--mute); text-decoration: line-through; }
+      .note-body .fsum .seg { margin: .6rem 0 0; }
+    </style>
+    <p>发票按金额命名（比如 <code>餐饮_128.50.pdf</code>），把目录里所有文件名中的数字加起来，就是总金额。正则 <code>\d+\.?\d*</code> 匹配“一串数字，后面可以跟一个小数点和几位小数”。</p>
+    <figure class="play fsum" id="note-fsum" data-fig="/notes/filename-sum/sum.js">
+      <div class="fig-body stack">
+        <div class="fig-main">
+          <div class="ctl-label">文件名（一行一个，能改）</div>
+          <textarea spellcheck="false" aria-label="文件名列表"></textarea>
+          <div class="seg"><button value="all">所有数字（脚本的做法）</button><button value="last">只取最后一个数</button></div>
+          <ul class="hits"></ul>
+          <p class="readout" aria-live="polite"></p>
+        </div>
+      </div>
+    </figure>
+    <p><button class="try" data-target="#note-fsum" data-set='{"mode":"all","names":["餐饮_128.50.pdf","打车_36.pdf","2025-04-09_住宿_420.pdf"]}'>带日期的文件名</button><button class="try" data-target="#note-fsum" data-set='{"mode":"last"}'>只取最后一个数</button></p>
+    <p>坑在于它会把文件名里<strong>所有</strong>数字都加上：日期 <code>2025-04-09</code> 会变成 2025、04、09 三个数，车次 <code>G1234</code>、重名文件的 <code>(2)</code> 也会被算进去。所以文件名里只留金额最稳；实在要带日期，就改成只取最后一个数，或者只认“元”前面的数。另外 <code>36.pdf</code> 匹配到的是 <code>36.</code>（带着小数点），<code>float('36.')</code> 照样是 36，不影响结果。</p>
+    <pre><code>import os
+import re
+
+def sum_numbers_in_filenames(directory):
+    """
+    计算给定目录中所有文件名中包含的数字之和。
+
+    Args:
+        directory (str): 目录路径。
+
+    Returns:
+        float: 所有文件名中包含的数字之和。
+    """
+    total_sum = 0
+    try:
+        filenames = os.listdir(directory)
+        for filename in filenames:
+            # 使用正则表达式查找文件名中的所有数字
+            numbers = re.findall(r'\d+\.?\d*', filename)
+            for number in numbers:
+                try:
+                    total_sum += float(number)
+                except ValueError:
+                    print(f"警告：无法将 '{number}' 转换为数字。")
+    except FileNotFoundError:
+        print(f"错误：目录 '{directory}' 不存在。")
+    except Exception as e:
+        print(f"发生错误：{e}")
+
+    return total_sum
+
+# 示例用法
+directory_path = "./"  # 将此路径替换为你的目录路径
+result = sum_numbers_in_filenames(directory_path)
+print(f"文件名中包含的数字之和：{result}")</code></pre>
+    <p>注意 <code>r'…'</code> 里反斜杠只写一个：写成 <code>r'\\d+'</code> 匹配的就是字面上的反斜杠加 d，一个数都找不到，结果永远是 0。</p>
+  </div>
+</main>
+<footer class="site"><a href="/notes/">← 速查</a><span>Cr's Blog</span><a href="/">首页 →</a></footer>
+</body>
+</html>

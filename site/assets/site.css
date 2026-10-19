@@ -208,3 +208,136 @@ input[type=text]:focus, input[type=number]:focus { outline: 2px solid color-mix(
 li[data-set] { cursor: pointer; border-radius: 4px; }
 li[data-set]:hover { background: color-mix(in srgb, var(--hand) 6%, transparent); }
 li[data-set] > strong:first-child { color: var(--hand); }
+
+/* =================== 改版：正常博客的首页和栏目 =================== */
+header.site nav { gap: 1.15rem; }
+header.site nav a { transition: color .2s; }
+header.site nav a:hover { color: var(--ink); }
+
+.home { max-width: 60rem; }
+.home .intro { margin: .4rem 0 1rem; }
+
+/* 速查公告栏 */
+.board { display: flex; align-items: center; gap: .7rem; border: 1px solid var(--line); background: var(--panel); border-radius: 999px; padding: .2rem .45rem .2rem 1rem; margin: 0 0 2.8rem; font-size: .9rem; }
+.board-label { color: var(--hand); font-size: .78rem; letter-spacing: .2em; white-space: nowrap; }
+.board-label::before { content: ''; display: inline-block; width: .42em; height: .42em; border-radius: 50%; background: var(--hand); margin-right: .5em; vertical-align: .12em; }
+.board-window { flex: 1; min-width: 0; height: 2.1rem; overflow: hidden; }
+.board-list { list-style: none; margin: 0; padding: 0; transition: transform .6s cubic-bezier(.2, .7, .2, 1); }
+.board-item { all: unset; box-sizing: border-box; display: flex; gap: .9em; align-items: center; height: 2.1rem; width: 100%; cursor: pointer; white-space: nowrap; overflow: hidden; }
+.board-item b { font-weight: 500; flex: none; transition: color .2s; }
+.board-item span { color: var(--mute); overflow: hidden; text-overflow: ellipsis; }
+.board-item:hover b, .board-item:focus-visible b { color: var(--hand); }
+.board-item:focus-visible { outline: 2px solid color-mix(in srgb, var(--hand) 35%, transparent); outline-offset: -2px; border-radius: 4px; }
+.board-nav { display: flex; }
+.board-nav button { all: unset; cursor: pointer; color: var(--mute); padding: 0 .35rem; font-size: 1.05rem; line-height: 1; transition: color .2s; }
+.board-nav button:hover { color: var(--hand); }
+.board-all { font-size: .78rem; color: var(--hand); text-decoration: none; white-space: nowrap; padding: 0 .55rem 0 .2rem; }
+@media (max-width: 40rem) { .board-item span, .board-nav { display: none; } }
+
+/* 速查弹窗：短的浮窗、长的右侧抽屉，手机上都是底部弹出 */
+dialog.note-pop { border: 1px solid var(--line); background: var(--panel); color: var(--ink); padding: 0; border-radius: 12px; box-shadow: 0 22px 60px rgba(50, 38, 15, .2); overflow: auto; font: 16px/1.8 var(--sans); }
+dialog.note-pop::backdrop { background: rgba(38, 35, 30, .14); }
+dialog.note-pop.short { position: fixed; margin: 0; top: var(--top, 16vh); left: var(--left, calc(50% - 14rem)); width: min(28rem, calc(100vw - 24px)); max-height: min(72vh, 38rem); }
+dialog.note-pop.long { position: fixed; margin: 0; inset: 0 0 0 auto; height: 100%; max-height: 100%; width: min(34rem, 100vw); border-radius: 14px 0 0 14px; border-right: 0; }
+dialog.note-pop header { position: sticky; top: 0; z-index: 1; display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; padding: 1rem 1.3rem .6rem; background: var(--panel); border-bottom: 1px dashed var(--line); }
+dialog.note-pop h2 { font-family: var(--kai); font-weight: 400; font-size: 1.35rem; margin: .1rem 0 0; line-height: 1.35; }
+dialog.note-pop nav { display: flex; gap: .7rem; align-items: center; white-space: nowrap; font-size: .82rem; }
+dialog.note-pop nav a { color: var(--hand); text-decoration: none; }
+dialog.note-pop .close { all: unset; cursor: pointer; font-size: 1.35rem; line-height: 1; color: var(--mute); padding: 0 .2rem; }
+dialog.note-pop .close:hover { color: var(--hand); }
+.pop-body { padding: .6rem 1.3rem 1.4rem; }
+.pop-body p { margin: .6em 0; } .pop-body ul, .pop-body ol { padding-left: 1.3em; }
+.pop-body .loading { color: var(--mute); }
+.pop-body figure.play { margin: 1rem 0; padding: .8rem; }
+.pop-body .fig-body { grid-template-columns: minmax(0, 1fr); }
+.pop-body .wide { width: auto; margin-left: 0; }
+@media (max-width: 40rem) {
+  dialog.note-pop.short, dialog.note-pop.long { inset: auto 0 0 0; top: auto; left: 0; width: 100%; max-height: 86vh; height: auto; border-radius: 14px 14px 0 0; border-right: 1px solid var(--line); }
+}
+
+/* 最近：一张大卡 + 两张小卡 */
+.feature { display: grid; grid-template-columns: 1.45fr 1fr; gap: 1.2rem; }
+.feature .card:first-child { grid-row: span 2; }
+.feature .card:first-child .mini { aspect-ratio: 4 / 3; }
+.feature .card:first-child h3 { font-size: 1.55rem; }
+@media (max-width: 52rem) { .feature { grid-template-columns: minmax(0, 1fr); } .feature .card:first-child { grid-row: auto; } }
+.card { transition: transform .3s cubic-bezier(.2, .7, .2, 1), border-color .3s, box-shadow .3s; }
+.card:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(50, 38, 15, .07); }
+
+/* 页签：原地切换 */
+.more { margin-top: 3.2rem; }
+.tabs { margin-bottom: 1.3rem; }
+.tab-stage { overflow: hidden; }
+.tab-foot { margin-top: 1.1rem; font-size: .88rem; }
+.tab-foot a, .more-link { color: var(--hand); text-decoration: none; }
+.tab-foot a:hover, .more-link:hover { text-decoration: underline; }
+.doc .topic { color: var(--mute); font-size: .76rem; white-space: nowrap; }
+.tool-card { display: grid; grid-template-columns: 15rem minmax(0, 1fr); gap: 1.2rem; align-items: center; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: .8rem; }
+.tool-card .mini { aspect-ratio: 16 / 10; border-radius: 6px; background: var(--fig-bg); overflow: hidden; position: relative; }
+.tool-card .mini canvas { display: block; width: 100%; height: 100%; touch-action: none; }
+.tool-card h3 { font-family: var(--kai); font-weight: 400; font-size: 1.3rem; margin: 0 0 .2rem; }
+.tool-card p { margin: 0 0 .5rem; font-size: .9rem; color: var(--ink2); }
+@media (max-width: 40rem) { .tool-card { grid-template-columns: minmax(0, 1fr); } }
+
+/* 小图：画布铺满容器（不靠 height:100% 反推高度） */
+.mini { position: relative; }
+.card .mini canvas, .tool-card .mini canvas { position: absolute; inset: 0; }
+
+/* 栏目页 */
+.section { max-width: 44rem; margin: 0 auto; padding: 2rem 1.5rem 3rem; }
+.section h1 { font-family: var(--kai); font-weight: 400; font-size: 2.3rem; letter-spacing: .04em; margin: .2rem 0 .3rem; }
+.section .dek { margin-bottom: 1.8rem; }
+.section h2.group { font-size: .8rem; letter-spacing: .15em; color: var(--mute); font-weight: 400; margin: 2.2rem 0 .3rem; border-bottom: 1px solid var(--ink); padding-bottom: .3rem; display: flex; justify-content: space-between; }
+.section .doc .d { display: block; grid-column: 2 / 4; color: var(--mute); font-size: .82rem; line-height: 1.5; margin-top: -.15rem; }
+.note-row { all: unset; box-sizing: border-box; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: .2rem 1rem; width: 100%; padding: .7rem 0; border-bottom: 1px dashed var(--line); cursor: pointer; }
+.note-row b { font-family: var(--kai); font-weight: 400; font-size: 1.12rem; transition: color .2s; }
+.note-row span { grid-column: 1; color: var(--mute); font-size: .86rem; }
+.note-row i { grid-row: 1 / 3; grid-column: 2; align-self: center; font-style: normal; font-size: .76rem; color: var(--hand); }
+.note-row:hover b { color: var(--hand); }
+.archived { list-style: none; padding: 0; margin: 0; columns: 2; column-gap: 2rem; }
+.archived li { padding: .3rem 0; break-inside: avoid; font-size: .92rem; }
+.archived a { text-decoration: none; }
+.archived a::after { content: ' ↗'; color: var(--mute); font-size: .8em; }
+@media (max-width: 34rem) { .archived { columns: 1; } }
+
+/* =================== 动画（都尊重 reduced-motion） =================== */
+.post h1 { view-transition-name: post-title; }
+@media (prefers-reduced-motion: no-preference) {
+  @view-transition { navigation: auto; }
+  ::view-transition-group(post-title) { animation-duration: .45s; animation-timing-function: cubic-bezier(.2, .7, .2, 1); }
+  ::view-transition-old(root), ::view-transition-new(root) { animation-duration: .28s; }
+
+  @keyframes rise { from { opacity: 0; transform: translateY(10px); } }
+  .rise { animation: rise .6s cubic-bezier(.2, .7, .2, 1) both; animation-delay: calc(var(--i, 0) * 45ms); }
+  .post > *, .section > * { animation: rise .55s cubic-bezier(.2, .7, .2, 1) both; }
+  .post > :nth-child(2), .section > :nth-child(2) { animation-delay: 40ms; }
+  .post > :nth-child(3), .section > :nth-child(3) { animation-delay: 80ms; }
+  .post > :nth-child(4), .section > :nth-child(4) { animation-delay: 120ms; }
+  .post > :nth-child(5), .section > :nth-child(5) { animation-delay: 160ms; }
+  .post > :nth-child(n+6), .section > :nth-child(n+6) { animation-delay: 200ms; }
+
+  .mini.hint::after { content: ''; position: absolute; inset: 0; border-radius: inherit; box-shadow: inset 0 0 0 2px var(--hand); opacity: 0; pointer-events: none; animation: hint 1.8s ease .5s 1; }
+  @keyframes hint { 30% { opacity: .5; } 100% { opacity: 0; } }
+
+  dialog.note-pop.short[open] { animation: pop-in .26s cubic-bezier(.2, .7, .2, 1); }
+  dialog.note-pop.long[open] { animation: drawer-in .34s cubic-bezier(.2, .7, .2, 1); }
+  dialog.note-pop.short.closing { animation: pop-out .2s ease-in forwards; }
+  dialog.note-pop.long.closing { animation: drawer-out .22s ease-in forwards; }
+  dialog.note-pop[open]::backdrop { animation: fade-in .3s ease; }
+  @keyframes pop-in { from { opacity: 0; transform: translateY(-8px) scale(.985); } }
+  @keyframes pop-out { to { opacity: 0; transform: translateY(-6px) scale(.985); } }
+  @keyframes drawer-in { from { transform: translateX(100%); } }
+  @keyframes drawer-out { to { transform: translateX(100%); } }
+  @keyframes fade-in { from { opacity: 0; } }
+  @media (max-width: 40rem) {
+    dialog.note-pop.short[open], dialog.note-pop.long[open] { animation: sheet-in .32s cubic-bezier(.2, .7, .2, 1); }
+    dialog.note-pop.short.closing, dialog.note-pop.long.closing { animation: sheet-out .22s ease-in forwards; }
+    @keyframes sheet-in { from { transform: translateY(100%); } }
+    @keyframes sheet-out { to { transform: translateY(100%); } }
+  }
+  a { transition: color .2s; }
+}
+/* 头尾和首页同宽；大卡片的小图填满卡片剩下的高度 */
+:root { --page: 60rem; }
+.feature .card:first-child .mini { aspect-ratio: auto; flex: 1; min-height: 17rem; }
+.feature .card:first-child .q { flex: none; }

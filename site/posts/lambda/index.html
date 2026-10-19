@@ -3,10 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Lambda初窥 · Cr's Blog</title>
+<title>Lambda 初窥 · Cr's Blog</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-screen-webfont/lxgwwenkaigbscreen.css">
 <link rel="stylesheet" href="/assets/site.css">
 <script type="module" src="/assets/page.js"></script>
+<script type="module">import { mountAll } from '/assets/runner.js'; mountAll();</script>
 <style>
   .church { font-size: .9rem; min-height: 15rem; }
   .church .expr { font: 13px/1.7 var(--mono); background: #efeadd; border-radius: 6px; padding: .5rem .8rem; margin-bottom: .9rem; overflow-x: auto; white-space: nowrap; }
@@ -26,12 +27,20 @@
 </style>
 </head>
 <body>
-<header class="site"><a class="name" href="/">Cr's Blog</a><nav><a href="/#essays">随笔</a><a href="/#notes" aria-current="page">笔记</a><a href="/#tools">小工具</a></nav></header>
+<header class="site"><a class="name" href="/">Cr's Blog</a><nav><a href="/articles/">文章</a><a href="/essays/">随笔</a><a href="/notes/">速查</a><a href="/tools/">工具</a><a href="/archive/">归档</a></nav></header>
 <main class="post">
-  <div class="kicker"><span>编程</span><span>2025-03-13</span></div>
-  <h1>Lambda初窥</h1>
-  <p class="dek">只用函数写数字：n 就是“把 f 用 n 次”。</p>
-  <p class="can"><span class="hand-dot"></span>能动的：换 <b>运算</b>　调 <b>m</b>、<b>n</b>　点代码里的 <b>定义</b>　点文中的 <b>试试</b></p>
+  <div class="kicker"><span>计算理论</span><span>2025-03-13</span></div>
+  <h1>Lambda 初窥</h1>
+  <p class="dek">只用函数，能不能写出数字、加减乘除和递归？</p>
+
+  <p>λ 演算是 Alonzo Church 在 1930 年代提出的计算模型，整个语言只有三样东西：</p>
+  <ul>
+    <li><b>变量</b>：<code>x</code>；</li>
+    <li><b>抽象</b>（定义函数）：<code>λx.M</code>，参数 x，函数体 M；</li>
+    <li><b>应用</b>（调用函数）：<code>M N</code>，把 N 喂给 M。</li>
+  </ul>
+  <p>计算只有一条规则，叫 β 归约：<code>(λx.M) N</code> 变成“把 M 里的 x 全换成 N”。没有数字，没有 if，没有循环，连多参数函数都没有：两个参数就写成“返回函数的函数”，<code>λf.λx. …</code>，这叫柯里化。</p>
+  <p>Python 的 <code>lambda</code> 恰好就是 λ，<code>lambda f: lambda x: …</code> 一字不差地对应 <code>λf.λx. …</code>。下面的代码只用 lambda 和调用，把自然数、算术、比较一样样搭出来，最后再看递归怎么来。</p>
 
   <figure class="play wide" data-fig="./church.js">
     <div class="fig-head"><span class="fig-no">图 1</span><span>Church 数：f 一共用了几次</span></div>
@@ -48,26 +57,93 @@
         <p class="readout"></p>
       </div>
     </div>
-    <figcaption><span class="key" style="background:color-mix(in srgb,var(--fig-ok) 30%,transparent)"></span>和<span class="key" style="background:color-mix(in srgb,var(--fig-ref) 30%,transparent)"></span>只是为了分清“哪几次 f 来自哪个数”。结果都是代码真的跑出来的：右边那行 <code>to_int(…)</code> 就是原文里的 <code>to_int</code>。</figcaption>
+    <figcaption><span class="key" style="background:color-mix(in srgb,var(--fig-ok) 30%,transparent)"></span>和<span class="key" style="background:color-mix(in srgb,var(--fig-ref) 30%,transparent)"></span>只是为了分清“哪几次 f 来自哪个数”。结果都是代码真的跑出来的：右边那行 <code>to_int(…)</code> 就是下面代码里的 <code>to_int</code>。</figcaption>
   </figure>
 
-  <h2><span class="n">1</span>原文</h2>
-  <p>点任意一行定义，图就切到那个运算。</p>
-  <pre class="codebox"><span class="ln" data-op="ZERO">ZERO = lambda f:lambda x:x</span><span class="ln click" data-op="SUC">SUC = lambda church:lambda f:lambda x:church(f)(f(x))</span><span class="ln"> </span><span class="ln">to_int = lambda n:n(lambda x:x+1)(0)</span><span class="ln">to_church = lambda n:ZERO if n==0 else SUC(to_church(n-1))</span><span class="ln"> </span><span class="ln">ONE = to_church(1)</span><span class="ln">TWO = to_church(2)</span><span class="ln">THREE = to_church(3)</span><span class="ln"> </span><span class="ln click" data-op="ADD">ADD = lambda m:lambda n:lambda f:lambda x:m(f)(n(f)(x))</span><span class="ln">ADD_1 = lambda m:lambda n:m(SUC)(n)</span><span class="ln click" data-op="MUL">MUL = lambda m:lambda n:lambda f:lambda x:m(lambda x1:n(f)(x1))(x)</span><span class="ln click" data-op="POW">POW = lambda m:lambda n:n(MUL(m))(ONE) #POW(m)(n) = m^n</span><span class="ln"> </span><span class="ln">PAIR = lambda x:lambda y:lambda f:f(x)(y)</span><span class="ln">FST = lambda p: p(lambda x: lambda y: x)</span><span class="ln">LST = lambda p: p(lambda x: lambda y: y)</span><span class="ln">PHI = lambda p: PAIR(LST(p))(SUC(LST(p)))</span><span class="ln click" data-op="PRED">PRED = lambda n:FST(n(PHI)(PAIR(ZERO)(ZERO)))</span><span class="ln click" data-op="SUB">SUB = lambda m: lambda n: n(PRED)(m)</span><span class="ln"> </span><span class="ln">IS_ZERO = lambda n:n(lambda x:FALSE)(TRUE)</span><span class="ln">LTE = lambda m:lambda n:IS_ZERO(SUB(m)(n))</span><span class="ln">GT = lambda m:lambda n:NOT(LTE(m)(n))</span><span class="ln">EQ = lambda m:lambda n:AND(LTE(m)(n))(LTE(n)(m))</span><span class="ln"> </span><span class="ln">I = lambda x:x</span><span class="ln">W = lambda f:lambda x:f(x)(x)</span></pre>
+  <h2><span class="n">1</span>代码</h2>
+  <p>点任意一行亮着的定义，图就切到那个运算。</p>
+  <pre class="codebox"><span class="ln" data-op="ZERO">ZERO = lambda f:lambda x:x</span><span class="ln click" data-op="SUC">SUC = lambda church:lambda f:lambda x:church(f)(f(x))</span><span class="ln"> </span><span class="ln">to_int = lambda n:n(lambda x:x+1)(0)</span><span class="ln">to_church = lambda n:ZERO if n==0 else SUC(to_church(n-1))</span><span class="ln"> </span><span class="ln">ONE = to_church(1)</span><span class="ln">TWO = to_church(2)</span><span class="ln">THREE = to_church(3)</span><span class="ln"> </span><span class="ln click" data-op="ADD">ADD = lambda m:lambda n:lambda f:lambda x:m(f)(n(f)(x))</span><span class="ln">ADD_1 = lambda m:lambda n:m(SUC)(n)</span><span class="ln click" data-op="MUL">MUL = lambda m:lambda n:lambda f:lambda x:m(lambda x1:n(f)(x1))(x)</span><span class="ln click" data-op="POW">POW = lambda m:lambda n:n(MUL(m))(ONE) #POW(m)(n) = m^n</span><span class="ln"> </span><span class="ln">PAIR = lambda x:lambda y:lambda f:f(x)(y)</span><span class="ln">FST = lambda p: p(lambda x: lambda y: x)</span><span class="ln">LST = lambda p: p(lambda x: lambda y: y)</span><span class="ln">PHI = lambda p: PAIR(LST(p))(SUC(LST(p)))</span><span class="ln click" data-op="PRED">PRED = lambda n:FST(n(PHI)(PAIR(ZERO)(ZERO)))</span><span class="ln click" data-op="SUB">SUB = lambda m: lambda n: n(PRED)(m)</span><span class="ln"> </span><span class="ln">IS_ZERO = lambda n:n(lambda x:FALSE)(TRUE)</span><span class="ln">LTE = lambda m:lambda n:IS_ZERO(SUB(m)(n))</span><span class="ln">GT = lambda m:lambda n:NOT(LTE(m)(n))</span><span class="ln">EQ = lambda m:lambda n:AND(LTE(m)(n))(LTE(n)(m))</span><span class="ln">GTE = lambda m:lambda n:OR(GT(m)(n))(EQ(m)(n))</span><span class="ln">LT = lambda m:lambda n:NOT(GTE(m)(n))</span><span class="ln"> </span><span class="ln">I = lambda x:x</span><span class="ln">W = lambda f:lambda x:f(x)(x)</span></pre>
+  <p>完整的一份（补上了比较要用的布尔值）可以直接在浏览器里跑：</p>
+  <div class="runner"><pre>ZERO = lambda f:lambda x:x
+SUC = lambda church:lambda f:lambda x:church(f)(f(x))
+to_int = lambda n:n(lambda x:x+1)(0)
+to_church = lambda n:ZERO if n==0 else SUC(to_church(n-1))
+ONE, TWO, THREE = to_church(1), to_church(2), to_church(3)
+
+ADD = lambda m:lambda n:lambda f:lambda x:m(f)(n(f)(x))
+ADD_1 = lambda m:lambda n:m(SUC)(n)
+MUL = lambda m:lambda n:lambda f:lambda x:m(lambda x1:n(f)(x1))(x)
+POW = lambda m:lambda n:n(MUL(m))(ONE) #POW(m)(n) = m^n
+
+PAIR = lambda x:lambda y:lambda f:f(x)(y)
+FST = lambda p: p(lambda x: lambda y: x)
+LST = lambda p: p(lambda x: lambda y: y)
+PHI = lambda p: PAIR(LST(p))(SUC(LST(p)))
+PRED = lambda n:FST(n(PHI)(PAIR(ZERO)(ZERO)))
+SUB = lambda m: lambda n: n(PRED)(m)
+
+# 布尔值：TRUE 选第一个，FALSE 选第二个
+TRUE = lambda x: lambda y: x
+FALSE = lambda x: lambda y: y
+NOT = lambda b: b(FALSE)(TRUE)
+AND = lambda p: lambda q: p(q)(p)
+OR = lambda p: lambda q: p(p)(q)
+to_bool = lambda b: b(True)(False)
+
+IS_ZERO = lambda n:n(lambda x:FALSE)(TRUE)
+LTE = lambda m:lambda n:IS_ZERO(SUB(m)(n))
+GT = lambda m:lambda n:NOT(LTE(m)(n))
+EQ = lambda m:lambda n:AND(LTE(m)(n))(LTE(n)(m))
+GTE = lambda m:lambda n:OR(GT(m)(n))(EQ(m)(n))
+LT = lambda m:lambda n:NOT(GTE(m)(n))
+
+print("3 + 2 =", to_int(ADD(THREE)(TWO)), to_int(ADD_1(THREE)(TWO)))
+print("3 × 2 =", to_int(MUL(THREE)(TWO)), "  2 ** 3 =", to_int(POW(TWO)(THREE)))
+print("PRED(3) =", to_int(PRED(THREE)), "  2 - 3 =", to_int(SUB(TWO)(THREE)))
+print("2 &lt;= 3:", to_bool(LTE(TWO)(THREE)), "  2 == 2:", to_bool(EQ(TWO)(TWO)), "  3 &lt; 2:", to_bool(LT(THREE)(TWO)))</pre></div>
 
   <h2><span class="n">2</span>数字 = 用几次</h2>
+  <p>Church 数的定义是：n 就是“接受 f 和 x，把 f 作用在 x 上 n 次”的函数，<code>n = λf.λx. f(f(…f(x)…))</code>。</p>
   <p><code>ZERO</code> 一次 f 都不用，直接把 x 还回去；<code>SUC</code> 先按原来的次数用 f，再多用一次。所以 <code>THREE</code> 展开就是 <code>f(f(f(x)))</code>，<code>to_int</code> 只是拿“加一”当 f、拿 0 当 x，数一数用了几次。<button class="try" data-set='{"op":"SUC","n":3}'>试试</button></p>
 
   <h2><span class="n">3</span>加法是接着用，乘法是一份一份用</h2>
-  <p><code>ADD</code> 先让 n 用 n 次 f，再把结果交给 m 接着用 m 次。<button class="try" data-set='{"op":"ADD","m":3,"n":2}'>试试 3 + 2</button></p>
+  <p><code>ADD</code> 先让 n 用 n 次 f，再把结果交给 m 接着用 m 次。<button class="try" data-set='{"op":"ADD","m":3,"n":2}'>试试 3 + 2</button><code>ADD_1</code> 是另一种写法：把 <code>SUC</code> 当成 f，在 n 的基础上加一加 m 次，结果一样。</p>
   <p><code>MUL</code> 把“用 n 次 f”整个当成一个新的 f，再让 m 用它 m 次。<button class="try" data-set='{"op":"MUL","m":3,"n":2}'>试试 3 × 2</button><code>POW</code> 则是从 <code>ONE</code> 出发，连乘 n 次 m。<button class="try" data-set='{"op":"POW","m":2,"n":3}'>试试 2³</button></p>
+  <p>注意这里一个“数”从头到尾都只是函数：<code>MUL(THREE)(TWO)</code> 的结果仍然是 <code>λf.λx. …</code>，只有最后 <code>to_int</code> 的时候才变回 Python 的整数。</p>
 
   <h2><span class="n">4</span>最难的是减一</h2>
-  <p>Church 数只会“往前用”，没法撤回一次 f。<code>PRED</code> 的办法是拿一对数 (前一个, 当前) 从 (0, 0) 出发，每步变成 (当前, 当前+1)，走 n 步以后取前一个，就是 n−1。<button class="try" data-set='{"op":"PRED","n":4}'>试试 PRED(4)</button><code>SUB</code> 再把 PRED 用 n 次；减过头会停在 0。<button class="try" data-set='{"op":"SUB","m":2,"n":4}'>试试 2 − 4</button></p>
+  <p>Church 数只会“往前用”，没法撤回一次 f。<code>PRED</code> 的办法是拿一对数 (前一个, 当前) 从 (0, 0) 出发，每步变成 (当前, 当前+1)，走 n 步以后取前一个，就是 n−1。<button class="try" data-set='{"op":"PRED","n":4}'>试试 PRED(4)</button></p>
+  <p>“一对数”本身也是函数：<code>PAIR(x)(y)</code> 是一个等着别人传“选择器”进来的函数，<code>FST</code> 传进“选第一个”，<code>LST</code> 传进“选第二个”。<code>PHI</code> 就是那一步 (a, b) → (b, b+1)。</p>
+  <p><code>SUB(m)(n)</code> 再把 PRED 用 n 次；减过头会停在 0，因为 <code>PRED(ZERO)</code> 还是 ZERO。<button class="try" data-set='{"op":"SUB","m":2,"n":4}'>试试 2 − 4</button></p>
+
+  <h2><span class="n">5</span>真假和比较</h2>
+  <p>布尔值也是“选择”：<code>TRUE = λx.λy. x</code> 选第一个，<code>FALSE = λx.λy. y</code> 选第二个。这样 <code>b(甲)(乙)</code> 本身就是 if-else，<code>NOT</code>、<code>AND</code>、<code>OR</code> 都能用选择写出来，比如 <code>AND = λp.λq. p(q)(p)</code>：p 为真就看 q，p 为假就直接是 p。</p>
+  <p><code>IS_ZERO = n(λx. FALSE)(TRUE)</code>：从 TRUE 出发，把“不管什么都变成 FALSE”的函数用 n 次。只要用过一次就是 FALSE，一次都没用（n 是 0）才还是 TRUE。</p>
+  <p>有了它，比较全都能借减法写：因为减过头会停在 0，<code>m − n = 0</code> 恰好等价于 <code>m ≤ n</code>，所以 <code>LTE = IS_ZERO(SUB(m)(n))</code>；两边都 ≤ 就是相等，<code>EQ = AND(LTE(m)(n))(LTE(n)(m))</code>；剩下的 GT、GTE、LT 用 NOT、OR 拼。</p>
+
+  <h2><span class="n">6</span>递归从哪来</h2>
+  <p>λ 演算里的函数没有名字，函数体里没法直接调用“自己”。办法是让函数把自己当参数传下去。代码最后那个 <code>W = λf.λx. f(x)(x)</code> 做的就是关键的一步：把同一个参数用两次。把“自己应用自己”再包一层，就得到 Y 组合子：</p>
+  <p><code>Y = λf. (λx. f(x x)) (λx. f(x x))</code></p>
+  <p>它满足 <code>Y g = g (Y g)</code>：g 拿到的参数正好是“g 的不动点”，也就是递归调用自己的那个函数。但直接搬进 Python 会停不下来：Python 先算参数再调用，<code>x(x)</code> 会被立刻展开，展开出来又是 <code>x(x)</code>……一直到栈溢出。改法是把 <code>x(x)</code> 包进 <code>lambda v: x(x)(v)</code>，用到的时候才展开，这个版本叫 Z 组合子：</p>
+  <div class="runner"><pre>W = lambda f:lambda x:f(x)(x)            # 同一个参数喂两次
+print(W(lambda a: lambda b: a * b)(7))   # 7 * 7
+
+fact_step = lambda self: lambda n: 1 if n == 0 else n * self(n - 1)
+
+# Y 组合子：λf.(λx.f(x x))(λx.f(x x))
+Y = lambda f: (lambda x: f(x(x)))(lambda x: f(x(x)))
+try:
+    Y(fact_step)
+except RecursionError as e:
+    print("Y：", e)
+
+# Z 组合子：把 x(x) 包进 lambda v: …，用到时才展开
+Z = lambda f: (lambda x: f(lambda v: x(x)(v)))(lambda x: f(lambda v: x(x)(v)))
+fact = Z(fact_step)
+print("Z：5! =", fact(5))</pre></div>
 
   <p>参考资料：<a href="https://zh.wikipedia.org/wiki/%CE%9B%E6%BC%94%E7%AE%97">wiki</a> · <a href="https://matt.might.net/articles/python-church-y-combinator/">Y combinator</a></p>
-  <p class="src">原文：个人博客备份/Lambda初窥.md（只有代码和链接）。代码去掉了重复的一段，FOUR 以后的常量没放；图和第 2–4 节的说明是后加的。</p>
 </main>
-<footer class="site"><a href="/posts/library/">← 某图书管理系统的分析</a><span>Cr's Blog</span><a href="/">首页 →</a></footer>
+<footer class="site"><a href="/">← 首页</a><span>Cr's Blog</span><a href="/">首页 →</a></footer>
 </body>
 </html>

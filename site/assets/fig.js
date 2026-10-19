@@ -54,3 +54,46 @@ export function seg(root, onPick) {
 export function flash(fig) { fig.classList.remove('flash'); void fig.offsetWidth; fig.classList.add('flash'); }
 
 export const fmt = (v, d = 2) => (+v.toFixed(d)).toString();
+
+// 平滑过渡：from/to 是数字、数组或数字组成的对象；reduced-motion 时直接跳到终点
+const reduce = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+const lerp = (a, b, t) => typeof a === 'number' ? a + (b - a) * t
+  : Array.isArray(a) ? a.map((v, i) => lerp(v, b[i], t))
+  : Object.fromEntries(Object.keys(a).map(k => [k, lerp(a[k], b[k], t)]));
+export const ease = t => t < .5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2;
+export function tween(from, to, ms, onUpdate) {
+  if (reduce() || !ms) { onUpdate(to, 1); return Promise.resolve(); }
+  return new Promise(res => {
+    const t0 = performance.now();
+    const step = now => {
+      const t = Math.min(1, (now - t0) / ms);
+      onUpdate(t === 1 ? to : lerp(from, to, ease(t)), t);
+      t < 1 ? requestAnimationFrame(step) : res();
+    };
+    requestAnimationFrame(step);
+  });
+}
+
+// 折线图：在 ctx 的 box = {x, y, w, h} 里画坐标、网格和几条线
+// opt = { P, xr: [x0, x1], yr: [y0, y1], series: [{ pts: [[x, y]…], color, width, dash, fill }], xticks, yticks, xlabel, ylabel }
+export function plot(ctx, box, opt) {
+  const { P, xr, yr, series = [], xticks = [], yticks = [] } = opt;
+  const X = x => box.x + (x - xr[0]) / (xr[1] - xr[0]) * box.w;
+  const Y = y => box.y + box.h - (y - yr[0]) / (yr[1] - yr[0]) * box.h;
+  ctx.save();
+  ctx.font = P.font; ctx.fillStyle = P.mute; ctx.strokeStyle = P.grid; ctx.lineWidth = 1;
+  xticks.forEach(t => { ctx.beginPath(); ctx.moveTo(X(t), box.y); ctx.lineTo(X(t), box.y + box.h); ctx.stroke(); ctx.textAlign = 'center'; ctx.fillText(+t.toFixed(3), X(t), box.y + box.h + 14); });
+  yticks.forEach(t => { ctx.beginPath(); ctx.moveTo(box.x, Y(t)); ctx.lineTo(box.x + box.w, Y(t)); ctx.stroke(); ctx.textAlign = 'right'; ctx.fillText(+t.toFixed(3), box.x - 5, Y(t) + 4); });
+  ctx.strokeStyle = P.mute; ctx.beginPath(); ctx.moveTo(box.x, box.y); ctx.lineTo(box.x, box.y + box.h); ctx.lineTo(box.x + box.w, box.y + box.h); ctx.stroke();
+  if (opt.xlabel) { ctx.textAlign = 'right'; ctx.fillText(opt.xlabel, box.x + box.w, box.y + box.h - 5); }
+  if (opt.ylabel) { ctx.textAlign = 'left'; ctx.fillText(opt.ylabel, box.x + 5, box.y + 11); }
+  ctx.beginPath(); ctx.rect(box.x, box.y - 2, box.w, box.h + 4); ctx.clip();
+  series.forEach(s => {
+    if (!s.pts.length) return;
+    ctx.beginPath(); s.pts.forEach(([x, y], i) => i ? ctx.lineTo(X(x), Y(y)) : ctx.moveTo(X(x), Y(y)));
+    if (s.fill) { ctx.lineTo(X(s.pts.at(-1)[0]), Y(yr[0])); ctx.lineTo(X(s.pts[0][0]), Y(yr[0])); ctx.closePath(); ctx.fillStyle = s.fill; ctx.fill(); return; }
+    ctx.strokeStyle = s.color || P.ink; ctx.lineWidth = s.width || 1.6; ctx.setLineDash(s.dash || []); ctx.stroke(); ctx.setLineDash([]);
+  });
+  ctx.restore();
+  return { X, Y };
+}

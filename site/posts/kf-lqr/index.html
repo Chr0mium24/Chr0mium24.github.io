@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LQR 与卡尔曼滤波是同一个方程 · Cr's Blog</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-screen-webfont/lxgwwenkaigbscreen.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="/assets/site.css">
+<script type="module" src="/assets/page.js"></script>
+<style>
+  .fig-main canvas + canvas { margin-top: .5rem; }
+  .ctl.log output { font-size: .82rem; }
+</style>
+</head>
+<body>
+<header class="site"><a class="name" href="/">Cr's Blog</a><nav><a href="/articles/">文章</a><a href="/essays/">随笔</a><a href="/notes/">速查</a><a href="/tools/">工具</a><a href="/archive/">归档</a></nav></header>
+<main class="post">
+  <div class="kicker"><span>控制</span><span>2026-04-19</span></div>
+  <h1>LQR 与卡尔曼滤波是同一个方程</h1>
+  <p class="dek">一个估计状态，一个设计控制。推到底是同一个 Riccati 递推，一个往前算，一个往后算。</p>
+
+  <p>卡尔曼滤波回答“状态现在大概在哪”，LQR 回答“该用多大的力把状态拉回来”。一个是估计，一个是控制，出发点完全不同。但把两边的推导各自走完，会得到同一个矩阵递推式，只是矩阵转置了、时间方向反了。这篇先把卡尔曼滤波从头推一遍，再推 LQR，最后把两个式子并排放。</p>
+
+  <h2><span class="n">1</span>卡尔曼滤波要解决的问题</h2>
+  <p>系统和传感器写成</p>
+  <p>\[\left\{\begin{aligned}x_k&amp;=A x_{k-1}+B u_{k-1}+w_{k-1}\\ z_k&amp;=H x_k+v_k\end{aligned}\right.\]</p>
+  <p>\(w\) 是外界扰动，协方差记作 \(Q=E[ww^T]\)；\(v\) 是观测误差，协方差记作 \(R=E[vv^T]\)。卡尔曼滤波的概率论假设是：过程噪声和测量噪声是相互独立的白噪声，且服从高斯分布，\(w\sim\mathcal N(0,Q)\)，\(v\sim\mathcal N(0,R)\)。</p>
+  <p>手里有两条信息：一条是拿模型往前推出来的<strong>先验</strong> \(\hat x_k^-\)，一条是这一刻的<strong>测量</strong> \(z_k\)。滤波要做的是把两条合成一个比各自都准的估计 \(\hat x_k\)。</p>
+
+  <h2><span class="n">2</span>两个高斯相乘</h2>
+  <p>为什么更新方程长成“先验加一个修正”的样子？考虑两个独立的信息源：基于模型的先验预测分布 \(\mathcal N(\hat x_k^-,P_k^-)\)，和传感器的测量分布 \(\mathcal N(z_k,R)\)。按贝叶斯定理，结合两个独立证据的后验，正比于两个高斯密度的乘积。一维时把指数相加、配方：</p>
+  <p>\[e^{-\frac{(x-\mu_1)^2}{2\sigma_1^2}}\cdot e^{-\frac{(x-\mu_2)^2}{2\sigma_2^2}}=e^{-\left(\frac{(x-\mu_1)^2}{2\sigma_1^2}+\frac{(x-\mu_2)^2}{2\sigma_2^2}\right)}\;\propto\;e^{-\frac{(x-\mu)^2}{2\sigma^2}}\]</p>
+  <p>指数里是 \(x\) 的二次式，所以乘积还是高斯。对齐 \(x^2\) 和 \(x\) 的系数，得到</p>
+  <p>\[\frac1{\sigma^2}=\frac1{\sigma_1^2}+\frac1{\sigma_2^2},\qquad \mu=\mu_1+\underbrace{\frac{\sigma_1^2}{\sigma_1^2+\sigma_2^2}}_{K}\,(\mu_2-\mu_1)\]</p>
+  <p>后验均值就是“先验 + K × (测量 − 先验)”，一个线性加权；后验方差比两个都小。</p>
+
+  <figure class="play wide" id="gauss" data-fig="./gauss.js">
+    <div class="fig-head"><span class="fig-no">图 1</span><span>先验 × 测量 = 后验</span></div>
+    <div class="fig-body">
+      <div class="fig-main"><canvas class="gauss" aria-label="两个高斯分布和它们的乘积，峰顶可拖动"></canvas></div>
+      <div class="fig-side">
+        <label class="ctl">先验 σ <input name="s1" type="range" min="0.4" max="3" step="0.01"><output for="s1"></output></label>
+        <label class="ctl">测量 σ <input name="s2" type="range" min="0.4" max="3" step="0.01"><output for="s2"></output></label>
+        <p class="readout" aria-live="polite"></p>
+      </div>
+    </div>
+    <figcaption>红实线是先验，红虚线是测量，两条都能拖：抓住峰顶左右挪改均值，上下拖改高矮（面积固定，越高越窄）。绿色是归一化后的乘积，也就是后验，它总比两条红线都窄。</figcaption>
+  </figure>
+
+  <p>两边一样准时，后验正好在中间。<button class="try" data-target="#gauss" data-set='{"m1":-1.5,"s1":1,"m2":1.5,"s2":1}'>一样准</button>测量很糟时，后验几乎不动。<button class="try" data-target="#gauss" data-set='{"m1":-1.5,"s1":0.6,"m2":2,"s2":2.5}'>测量很糟</button>先验很糟时，后验几乎贴着测量。<button class="try" data-target="#gauss" data-set='{"m1":-2,"s1":2.8,"m2":1.5,"s2":0.5}'>先验很糟</button></p>
+  <p>高斯乘积说明了均值必定呈现线性加权的形式。所以多维时直接假设后验的线性更新结构</p>
+  <p>\[\hat x_k=\hat x_k^-+K_k\,(z_k-H\hat x_k^-)\]</p>
+  <p>接下来只需通过最小化误差方差，求出最优的权重矩阵 \(K_k\)。</p>
+
+  <h2><span class="n">3</span>推出 K</h2>
+  <p><strong>先验从哪来。</strong>拿模型往前推一步：\(\hat x_k^-=A\hat x_{k-1}+Bu_{k-1}\)。先验误差</p>
+  <p>\[e_k^-=x_k-\hat x_k^-=A(x_{k-1}-\hat x_{k-1})+w_{k-1}=A e_{k-1}+w_{k-1}\]</p>
+  <p>把误差的协方差记作 \(P=E[ee^T]\)。噪声之间、噪声和误差之间相互独立，交叉项期望为 0：\(E[e_k^-v_k^T]=0\)，\(E[v_k(e_k^-)^T]=0\)，\(E[e_{k-1}w_{k-1}^T]=0\)。于是</p>
+  <p>\[\begin{aligned}P_k^-&amp;=E\big[(Ae_{k-1}+w_{k-1})(Ae_{k-1}+w_{k-1})^T\big]\\&amp;=A\,E[e_{k-1}e_{k-1}^T]\,A^T+E[w_{k-1}w_{k-1}^T]\\&amp;=AP_{k-1}A^T+Q\end{aligned}\]</p>
+  <p><strong>后验误差。</strong>代入 \(z_k=Hx_k+v_k\)：</p>
+  <p>\[\begin{aligned}e_k&amp;=x_k-\hat x_k^--K_k\big(Hx_k+v_k-H\hat x_k^-\big)\\&amp;=(I-K_kH)\,e_k^--K_kv_k\end{aligned}\]</p>
+  <p>两项独立，交叉项消掉：</p>
+  <p>\[P_k=E[e_ke_k^T]=(I-K_kH)\,P_k^-\,(I-K_kH)^T+K_kRK_k^T\]</p>
+  <p><strong>让总方差最小。</strong>我们希望各个状态变量的误差都越小越好，协方差矩阵对角线上就是各个变量的方差，所以要最小化 \(P_k\) 的迹。展开：</p>
+  <p>\[J=\operatorname{tr}(P_k)=\operatorname{tr}(P_k^-)-2\operatorname{tr}(K_kHP_k^-)+\operatorname{tr}\big(K_k(HP_k^-H^T+R)K_k^T\big)\]</p>
+  <p>用两条矩阵求导公式 \(\dfrac{\partial\operatorname{tr}(AB)}{\partial A}=B^T\) 和 \(\dfrac{\partial\operatorname{tr}(ABA^T)}{\partial A}=2AB\)（\(B\) 对称），并注意 \(P_k^-\) 对称：</p>
+  <p>\[\frac{\partial J}{\partial K_k}=-2P_k^-H^T+2K_k\big(HP_k^-H^T+R\big)=0\]</p>
+  <p>\[\boxed{\;K_k=P_k^-H^T\big(HP_k^-H^T+R\big)^{-1}\;}\]</p>
+  <p>这便是卡尔曼增益。把它代回 \(P_k\)，\(K_k(HP_k^-H^T+R)K_k^T\) 正好等于 \(P_k^-H^TK_k^T\)，和前面一项抵掉，后验协方差化简成</p>
+  <p>\[P_k=(I-K_kH)\,P_k^-\]</p>
+  <p>整个滤波就是两步交替：预测（\(\hat x^-\)、\(P^-\)）和更新（\(K\)、\(\hat x\)、\(P\)）。</p>
+
+  <h2><span class="n">4</span>一维时看得最清楚</h2>
+  <p>如果观测矩阵 \(H=I\)，最优增益变为 \(K=\dfrac{P^-}{P^-+R}\)，正是第 2 节的那个 \(K\)。代入 \(P=(1-K)P^-\)，可得</p>
+  <p>\[\frac1P=\frac1{P^-}+\frac1R\]</p>
+  <p>融合后的精确度（方差的倒数）等于预测精确度与测量精确度之和：独立的信息源一叠加，总的不确定度只会越融合越小。卡尔曼滤波的本质是将两个数据源通过协方差更小这个条件进行校准，更接近真实值。</p>
+  <p>再看它怎么随时间走。拿随机游走 \(x_k=x_{k-1}+w\)、\(z_k=x_k+v\) 做例子（\(A=H=1\)），协方差的递推是</p>
+  <p>\[P_k^-=P_{k-1}+Q,\qquad K_k=\frac{P_k^-}{P_k^-+R},\qquad P_k=(1-K_k)P_k^-\]</p>
+  <p>从一个很大的初始不确定度出发，\(K\) 一开始接近 1（几乎全信测量），之后越来越小，收敛到一个常数。令 \(P_k^-=P_{k-1}^-\) 解出稳态：</p>
+  <p>\[P_\infty^-=\frac{Q+\sqrt{Q^2+4QR}}{2},\qquad K_\infty=\frac{P_\infty^-}{P_\infty^-+R}\]</p>
+  <p>把 \(Q\)、\(R\) 同乘一个数，\(K_\infty\) 不变：<strong>稳态增益只看 Q/R</strong>。\(Q/R\) 大，模型不可信，多听测量；\(Q/R\) 小，测量不可信，多听模型。</p>
+
+  <figure class="play wide" id="track" data-fig="./track.js">
+    <div class="fig-head"><span class="fig-no">图 2</span><span>一维卡尔曼跟踪随机游走，下面是增益怎么收敛</span></div>
+    <div class="fig-body">
+      <div class="fig-main"><canvas class="track" aria-label="真值、测量和估计"></canvas><canvas class="gain" aria-label="卡尔曼增益和 LQR 增益随步数的变化"></canvas></div>
+      <div class="fig-side">
+        <div class="ctl-label">滤波器以为的噪声（对数刻度）</div>
+        <label class="ctl log">Q <input name="q" type="range" min="-3" max="1" step="0.01"><output for="q"></output></label>
+        <label class="ctl log">R <input name="r" type="range" min="-2" max="1" step="0.01"><output for="r"></output></label>
+        <div class="btns"><button class="btn" data-act="reseed">换一组噪声</button></div>
+        <p class="readout" aria-live="polite"></p>
+      </div>
+    </div>
+    <figcaption>真值是随机游走，真实的过程噪声方差 0.05、测量噪声方差 1，初始不确定度 \(P_0^-=4\)。拖两个滑块改的是<strong>滤波器以为的</strong> Q 和 R，数据不变。上栏：黑线真值，灰点测量，绿线估计和 ±2σ 带。下栏：绿线是卡尔曼增益 \(K_k\)，蓝虚线是第 6 节那个对偶 LQR 的反馈增益 \(L_k\)，灰点线是 \(K_\infty\)。</figcaption>
+  </figure>
+
+  <p>滤波器的 Q、R 和真实噪声一致时，平均来说误差最小。<button class="try" data-target="#track" data-set='{"Q":0.05,"R":1}'>Q、R 取真值</button>太信模型，估计又平又慢，跟不上真值。<button class="try" data-target="#track" data-set='{"Q":0.001,"R":1}'>Q 太小</button>太信测量，估计跟着噪声乱跳，几乎就是测量本身。<button class="try" data-target="#track" data-set='{"Q":5,"R":0.05}'>R 太小</button>Q、R 同乘 10，\(K_\infty\) 一点没变，只有开头那段过渡不一样。<button class="try" data-target="#track" data-set='{"Q":0.5,"R":10}'>同乘 10</button></p>
+
+  <h2><span class="n">5</span>LQR：从终点往回算</h2>
+  <p>换到控制这边。系统 \(x_{k+1}=Ax_k+Bu_k\)，要找一串控制 \(u_0,\dots,u_{N-1}\)，让下面的代价最小：</p>
+  <p>\[J=\sum_{k=0}^{N-1}\big(x_k^TQx_k+u_k^TRu_k\big)+x_N^TQ_fx_N\]</p>
+  <p>\(Q\) 罚状态偏离 0，\(R\) 罚用力。用动态规划，从终点往回算“从第 \(k\) 步、状态 \(x\) 出发，最少还要付多少代价”，记作 \(V_k(x)\)。终点时 \(V_N(x)=x^TQ_fx\)。猜它一直是二次型 \(V_k(x)=x^TP_kx\)，Bellman 方程是</p>
+  <p>\[V_k(x)=\min_u\Big[x^TQx+u^TRu+(Ax+Bu)^TP_{k+1}(Ax+Bu)\Big]\]</p>
+  <p>对 \(u\) 求导令其为 0：\(2Ru+2B^TP_{k+1}(Ax+Bu)=0\)，得到线性反馈</p>
+  <p>\[u_k=-L_kx_k,\qquad L_k=\big(R+B^TP_{k+1}B\big)^{-1}B^TP_{k+1}A\]</p>
+  <p>代回去，\(V_k\) 果然还是二次型，系数矩阵满足</p>
+  <p>\[\boxed{\begin{aligned}P_k=Q&amp;+A^TP_{k+1}A\\&amp;-A^TP_{k+1}B\big(R+B^TP_{k+1}B\big)^{-1}B^TP_{k+1}A\end{aligned}}\qquad P_N=Q_f\]</p>
+  <p>这就是 LQR 的 Riccati 方程。它从 \(P_N\) 出发，<strong>往回</strong>一步步算到 \(P_0\)。</p>
+
+  <h2><span class="n">6</span>并排放：同一个方程</h2>
+  <p>把卡尔曼滤波的预测和更新合成一步，只写先验协方差的递推：</p>
+  <p>\[\boxed{\begin{aligned}P_{k+1}^-=Q&amp;+AP_k^-A^T\\&amp;-AP_k^-H^T\big(R+HP_k^-H^T\big)^{-1}HP_k^-A^T\end{aligned}}\qquad P_0^-\ \text{给定}\]</p>
+  <p>和 LQR 那个式子逐项对：把 LQR 里的 \(A\) 换成 \(A^T\)、\(B\) 换成 \(H^T\)，两个式子一字不差。</p>
+  <div class="table-wrap"><table>
+    <thead><tr><th>LQR</th><th>卡尔曼滤波</th><th>意思</th></tr></thead>
+    <tbody>
+      <tr><td>\(A\)</td><td>\(A^T\)</td><td>系统矩阵转置</td></tr>
+      <tr><td>\(B\)（控制怎么进系统）</td><td>\(H^T\)（状态怎么进测量）</td><td>输入和输出互换</td></tr>
+      <tr><td>\(Q\)：状态偏差有多贵</td><td>\(Q\)：模型有多不准</td><td>越大越“急”</td></tr>
+      <tr><td>\(R\)：用力有多贵</td><td>\(R\)：测量有多不准</td><td>越大越“缓”</td></tr>
+      <tr><td>\(P_k\)：剩余代价</td><td>\(P_k^-\)：先验协方差</td><td>同一个递推</td></tr>
+      <tr><td>从 \(P_N=Q_f\) 往回算</td><td>从 \(P_0^-\) 往前算</td><td>时间方向相反</td></tr>
+      <tr><td>\(L_k\)</td><td>\((AK_k)^T\)</td><td>增益也对上</td></tr>
+    </tbody>
+  </table></div>
+  <p>增益那一行也能直接验：对偶系统里 \(AK_k=AP_k^-H^T(HP_k^-H^T+R)^{-1}\)，换完字母就是 \(L_k^T\)。图 2 下栏的蓝虚线就是这么画的：标量情形 \(A=B=H=1\)，取 \(Q_f=P_0^-\)，LQR 增益 \(L_k\) 从第 \(N\) 步往前收敛，卡尔曼增益 \(K_k\) 从第 0 步往后收敛，两条线左右镜像，中间都贴着同一个常数。<button class="try" data-target="#track" data-set='{"Q":0.02,"R":3}'>换一组 Q、R 看镜像</button></p>
+  <p>时间方向为什么相反，也说得通：LQR 知道的是终点要付的代价，未来怎么走还没发生，只能从终点往回推；卡尔曼滤波知道的是开头有多不确定，数据一步步进来，只能从开头往后推。时间够长时两边都收敛到同一个代数 Riccati 方程的解，也就是稳态增益。实际系统里常把两者拼起来用：卡尔曼滤波估计状态，LQR 拿估计值做反馈，这叫 LQG；而且两边可以各自单独设计（分离原理）。</p>
+
+  <h2><span class="n">7</span>扩展卡尔曼滤波</h2>
+  <p>现实系统往往是非线性的。扩展卡尔曼滤波（EKF）对非线性函数取一阶泰勒展开，继续套用卡尔曼滤波。把非线性的状态转移函数记为 \(f\)，观测函数记为 \(h\)：</p>
+  <p>\[\left\{\begin{aligned}x_k&amp;=f(x_{k-1},u_{k-1})+w_{k-1}\\ z_k&amp;=h(x_k)+v_k\end{aligned}\right.\]</p>
+  <p>在当前估计附近展开：</p>
+  <p>\[\begin{aligned}f(x_{k-1},u_{k-1})&amp;\approx f(\hat x_{k-1},u_{k-1})+F_k\,(x_{k-1}-\hat x_{k-1}),&amp;F_k&amp;=\frac{\partial f}{\partial x}\Big|_{\hat x_{k-1},u_{k-1}}\\ h(x_k)&amp;\approx h(\hat x_k^-)+H_k\,(x_k-\hat x_k^-),&amp;H_k&amp;=\frac{\partial h}{\partial x}\Big|_{\hat x_k^-}\end{aligned}\]</p>
+  <p>均值用原函数推，协方差用雅可比矩阵推：</p>
+  <div class="table-wrap"><table>
+    <thead><tr><th>步骤</th><th>标准卡尔曼滤波</th><th>扩展卡尔曼滤波</th></tr></thead>
+    <tbody>
+      <tr><td>系统模型</td><td>矩阵 \(A,B,H\) 是常量或只随时间变</td><td>函数 \(f(x),h(x)\) 是非线性的</td></tr>
+      <tr><td>状态预测</td><td>\(\hat x_k^-=A\hat x_{k-1}+Bu_{k-1}\)</td><td>\(\hat x_k^-=f(\hat x_{k-1},u_{k-1})\)（用原函数）</td></tr>
+      <tr><td>协方差传递</td><td>\(P_k^-=AP_{k-1}A^T+Q\)</td><td>\(P_k^-=F_kP_{k-1}F_k^T+Q\)</td></tr>
+      <tr><td>增益</td><td>\(K_k=P_k^-H^T(HP_k^-H^T+R)^{-1}\)</td><td>\(K_k=P_k^-H_k^T(H_kP_k^-H_k^T+R)^{-1}\)</td></tr>
+      <tr><td>更新残差</td><td>\(z_k-H\hat x_k^-\)</td><td>\(z_k-h(\hat x_k^-)\)（用原函数）</td></tr>
+    </tbody>
+  </table></div>
+  <p>控制那边对应的做法是 iLQR：沿着当前的轨迹把动力学线性化，解一次 LQR，更新轨迹，再线性化，反复迭代。对偶关系到了非线性情形也还在。</p>
+</main>
+<footer class="site"><a href="/">← 首页</a><span>Cr's Blog</span><a href="/">首页 →</a></footer>
+</body>
+</html>

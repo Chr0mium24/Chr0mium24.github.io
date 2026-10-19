@@ -1,69 +1,55 @@
-// 首页：左边能玩的卡片（小图本身就能玩），右边随笔直接摆正文。
-import { NOTES, DOCS, TEXTS, TOOLS } from './posts.js';
+// 首页：一句话 + 速查公告栏 + 最近三篇（带小图）+ 一个原地切换的页签（文章 / 随笔 / 工具）。
+// 首页长度固定在两屏左右，东西再多也只是各栏目页变长。
+import { ARTICLES, TEXTS, TOOLS, md } from './posts.js';
+import { mountBoard } from './board.js';
+import { fillEssay, essayShell } from './essays.js';
 
-const cards = document.getElementById('cards');
-cards.innerHTML = NOTES.map(p => `
-  <article class="card" data-tag="${p.tag}">
-    <div class="mini" data-mini="${p.mini}"></div>
-    <div class="meta"><span>${p.tag}</span><time>${p.date}</time>${p.ai ? '<span class="ai">AI 生成</span>' : ''}</div>
+mountBoard(document.getElementById('board'));
+
+// 最近：最新三篇有小图的文章，第一篇做大卡
+const featured = ARTICLES.filter(a => a.mini).slice(0, 3);
+const card = (p, i) => `
+  <article class="card rise" style="--i:${i + 2}">
+    <div class="mini" data-mini="/posts/${p.slug}/mini.js"></div>
+    <div class="meta"><span>${p.topic}</span><time>${p.date}</time>${p.ai ? '<span class="ai">AI 生成</span>' : ''}</div>
     <h3><a href="/posts/${p.slug}/">${p.title}</a></h3>
-    <p class="q">${p.q}</p>
-    <div class="act">${p.act}</div>
-  </article>`).join('');
-document.getElementById('ncount').textContent = `${NOTES.length} 篇`;
+    <p class="q">${p.dek}</p>
+  </article>`;
+document.getElementById('feature').innerHTML = featured.map(card).join('');
 
-// 按主题筛
-const tags = ['全部', ...new Set(NOTES.map(p => p.tag))];
-const chips = document.getElementById('chips');
-chips.innerHTML = tags.map(t => `<button value="${t}" aria-pressed="${t === '全部'}">${t}</button>`).join('');
-chips.addEventListener('click', e => {
-  const b = e.target.closest('button'); if (!b) return;
-  chips.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b));
-  cards.querySelectorAll('.card').forEach(c => c.hidden = b.value !== '全部' && c.dataset.tag !== b.value);
+// 点进文章时，标题平滑移到文章页的大标题（跨页 view transition）
+document.addEventListener('click', e => {
+  const a = e.target.closest('a[href^="/posts/"]'); if (!a) return;
+  document.querySelectorAll('[style*="view-transition-name"]').forEach(x => x.style.viewTransitionName = '');
+  (a.closest('h3') || a.querySelector('.t') || a).style.viewTransitionName = 'post-title';
 });
 
-// 其余笔记：按年分组的一行一篇，标题后面老实写多长
-const docs = document.getElementById('docs');
-let year = '';
-docs.innerHTML = DOCS.map(p => {
-  const y = p.date.slice(0, 4), head = y !== year ? `<h4>${(year = y)}</h4>` : '';
-  return `${head}<a class="doc" href="/posts/${p.slug}/"><time>${p.date.slice(5)}</time><span class="t">${p.title}</span><span class="k">${p.tag} · ${p.size}${p.ai ? ' · <span class="ai">AI 生成</span>' : ''}</span></a>`;
-}).join('');
-document.getElementById('dcount').textContent = `${DOCS.length} 篇，还没做成能玩的`;
-
-// 小工具：缩略图 + 标题，新窗口打开（和旧博客的 Web Pages 一样）
-document.getElementById('tool-list').innerHTML = TOOLS.map(t => `
-  <a class="tool" href="/tools/${t.file}" target="_blank" rel="noopener">
-    <img src="/tools/thumbs/${t.file.replace(/\.html$/, '.png')}" alt="" loading="lazy">
-    <span>${t.title}</span>
-  </a>`).join('');
-document.getElementById('tcount').textContent = `${TOOLS.length} 个单页工具`;
-
-// 随笔：从文章页里取正文。短的整篇放，长的切一刀，老实写还剩多少
-const list = document.getElementById('essay-list');
-const md = d => d.slice(5).replace('-', '·');
-const SHOW = 8;   // 最近 8 篇摆正文，更早的列标题
-const shown = TEXTS.slice(0, SHOW), older = TEXTS.slice(SHOW);
-list.innerHTML = shown.map(p => `<article id="e-${p.slug}"><div class="d"><time>${md(p.date)}</time><span>${p.kind}</span></div><h3><a href="/posts/${p.slug}/">${p.title}</a></h3><div class="essay"></div></article>`).join('')
-  + (older.length ? `<h4 class="older">更早</h4>` + older.map(p => `<a class="doc" href="/posts/${p.slug}/"><time>${p.date.slice(2).replaceAll('-', '.')}</time><span class="t">${p.title}</span><span class="k">${p.kind}</span></a>`).join('') : '');
-await Promise.all(shown.map(async p => {
-  const box = list.querySelector(`#e-${p.slug} .essay`);
-  try {
-    const html = await (await fetch(`/posts/${p.slug}/`)).text();
-    const src = new DOMParser().parseFromString(html, 'text/html').querySelector('.essay');
-    const kids = [...src.children];
-    const len = el => el.textContent.replace(/\s/g, '').length;
-    const total = kids.reduce((n, k) => n + len(k), 0);
-    let keep = kids, cut = '';
-    if (p.kind === '攻略') {
-      keep = kids.slice(0, 1);
-      const items = src.querySelectorAll(':scope > ol > li').length;
-      cut = `✂ 还有 ${items} 条`;
-    } else if (total > 320 && total - len(kids[0]) >= 100) {   // 剩下不到 100 字就不切了
-      keep = kids.slice(0, 1);
-      cut = `✂ 还有 ${((total - len(kids[0])) / 1000).toFixed(1)}k 字`;
-    }
-    box.append(...keep.map(k => document.importNode(k, true)));
-    if (cut) box.insertAdjacentHTML('beforeend', `<a class="cut" href="/posts/${p.slug}/">${cut}</a>`);
-  } catch { box.innerHTML = `<p><a href="/posts/${p.slug}/">去看正文</a></p>`; }
-}));
+// 页签
+const rest = ARTICLES.filter(a => !featured.includes(a));
+const panels = {
+  articles: () => `<div class="docs">${rest.slice(0, 8).map(p => `<a class="doc" href="/posts/${p.slug}/"><time>${p.date.slice(2).replaceAll('-', '.')}</time><span class="t">${p.title}</span><span class="topic">${p.topic}${p.ai ? ' · AI 生成' : ''}</span></a>`).join('')}</div>
+    <div class="tab-foot"><a href="/articles/">全部 ${ARTICLES.length} 篇文章 →</a></div>`,
+  essays: () => `<div class="essays">${TEXTS.slice(0, 3).map(p => essayShell(p, md)).join('')}</div>
+    <div class="tab-foot"><a href="/essays/">全部 ${TEXTS.length} 篇随笔 →</a></div>`,
+  tools: () => TOOLS.map(t => `<div class="tool-card"><div class="mini" data-mini="${t.mini}"></div><div><h3><a href="/tools/${t.file}">${t.title}</a></h3><p>${t.line}</p><a class="more-link" href="/tools/${t.file}">打开 →</a></div></div>`).join('')
+    + `<div class="tab-foot"><a href="/tools/">归档的旧工具 →</a></div>`,
+};
+const stage = document.getElementById('stage');
+const { watchMinis } = await import('./page.js');
+watchMinis(document.getElementById('feature'));
+let current;
+async function show(name, animate = true) {
+  if (name === current) return;
+  current = name;
+  document.querySelectorAll('#tabs button').forEach(b => b.setAttribute('aria-pressed', b.value === name));
+  const from = stage.offsetHeight;
+  stage.innerHTML = panels[name]();
+  if (name === 'essays') stage.querySelectorAll('.essays article').forEach((el, i) => fillEssay(el.querySelector('.essay'), TEXTS[i]));
+  watchMinis(stage);
+  if (!animate || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const to = stage.offsetHeight;
+  stage.animate([{ height: from + 'px' }, { height: to + 'px' }], { duration: 320, easing: 'cubic-bezier(.2,.7,.2,1)' });
+  stage.firstElementChild?.animate([{ opacity: 0, transform: 'translateY(6px)' }, { opacity: 1, transform: 'none' }], { duration: 360, easing: 'cubic-bezier(.2,.7,.2,1)' });
+}
+document.getElementById('tabs').addEventListener('click', e => { const b = e.target.closest('button'); if (b) show(b.value); });
+show('articles', false);

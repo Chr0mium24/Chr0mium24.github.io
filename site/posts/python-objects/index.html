@@ -1,0 +1,335 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Python 的对象模型：类、type 和元类 · Cr's Blog</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-screen-webfont/lxgwwenkaigbscreen.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="/assets/site.css">
+<script type="module" src="/assets/page.js"></script>
+<script type="module">import { mountAll } from '/assets/runner.js'; mountAll();</script>
+<style>
+  .rel-side .btns { margin-top: .4rem; }
+  .lk .codebox { margin-bottom: .8rem; }
+  .lk .dicts { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: .9rem; margin: 0 0 .8rem; }
+  .lk table { font: 12px/1.5 var(--mono); margin: 0; }
+  .lk caption { text-align: left; font: .76rem var(--sans); color: var(--mute); padding-bottom: .2rem; }
+  .lk td { padding: .2rem .4rem .2rem 0; overflow-wrap: anywhere; }
+  .lk td:first-child { width: 1.6em; color: var(--mute); }
+  .lk tr.me td { color: var(--ink); font-weight: 600; }
+  .lk tr.look td { background: color-mix(in srgb, var(--fig-ok) 16%, transparent); }
+  .lk td.empty { color: var(--mute); }
+  .lk .steps { list-style: none; padding: 0; margin: 0; counter-reset: s; }
+  .lk .steps li { counter-increment: s; position: relative; padding: .3rem .5rem .3rem 2rem; border-left: 2px solid var(--line); margin: .25rem 0; font-size: .87rem; line-height: 1.6; }
+  .lk .steps li::before { content: counter(s); position: absolute; left: .6rem; top: .32rem; font: 600 .78rem var(--sans); color: var(--mute); }
+  .lk .steps li.todo { color: var(--mute); }
+  .lk .steps li.skip { opacity: .55; }
+  .lk .steps li.pass { border-left-color: var(--mute); }
+  .lk .steps li.hit { border-left-color: var(--fig-ok); background: color-mix(in srgb, var(--fig-ok) 10%, transparent); }
+  .lk .steps .v { font-size: .82rem; color: var(--ink2); }
+  .lk .steps code { font-size: .84em; }
+  .look-side .toggle { margin-bottom: .2rem; }
+  .look-side .btn:disabled { opacity: .4; cursor: default; }
+  .merge { font: 12.5px/1.7 var(--mono); }
+  .merge td { padding: .25rem .6rem .25rem 0; }
+  @media (max-width: 34rem) { .lk .dicts { grid-template-columns: minmax(0, 1fr); } }
+  @media (max-width: 56rem) { #lookup .fig-side { order: -1; } }
+</style>
+</head>
+<body>
+<header class="site"><a class="name" href="/">Cr's Blog</a><nav><a href="/articles/">文章</a><a href="/essays/">随笔</a><a href="/notes/">速查</a><a href="/tools/">工具</a><a href="/archive/">归档</a></nav></header>
+<main class="post">
+  <div class="kicker"><span>Python</span><span>2025-12-07</span></div>
+  <h1>Python 的对象模型：类、type 和元类</h1>
+  <p class="dek">class 语句背后是谁在造类？<code>obj.x</code> 又是按什么顺序找到的？</p>
+
+  <p>这页的代码格都能改、能跑。点“运行”，浏览器会下载 Pyodide（编译成 WebAssembly 的 CPython），代码就在你自己的浏览器里执行，不经过任何服务器。同一页的代码格共用一个解释器，前面定义的东西后面能接着用。先从最经典的一行开始：</p>
+
+  <div class="runner"><pre>print("Hello World!")</pre></div>
+
+  <h2><span class="n">1</span>一切都是对象，类也是</h2>
+  <p>在 Python 里，整数、字符串、函数、模块都是对象，类本身也是。每个对象都有一个类型，<code>type(x)</code> 告诉你它是被谁“造”出来的：<code>type(5)</code> 是 <code>int</code>，<code>type("hi")</code> 是 <code>str</code>。类既然也是对象，也就有类型——绝大多数类的类型是 <code>type</code>。</p>
+  <p>所以实例可以是一个类：所有 <code>type</code> 的实例都是类；反过来，判断一个东西是不是类，就看 <code>isinstance(x, type)</code>。</p>
+  <p>整个体系里有两个顶点，而且它们互相咬住：</p>
+  <ul>
+    <li><code>object</code> 是继承链的顶端，所有类都是它的子类；它自己也是一个类，所以 <code>object</code> 是 <code>type</code> 的实例。</li>
+    <li><code>type</code> 是“是实例”这条链的顶端，所有类的类型最后都归到它；它自己也是类，所以 <code>type</code> 是 <code>object</code> 的子类。</li>
+    <li><code>type</code> 的类型还是 <code>type</code>：它是自己的实例。</li>
+  </ul>
+  <p>这个“鸡生蛋”的结构用 Python 代码写不出来，是解释器启动时在 C 层面直接搭好的。</p>
+
+  <div class="runner"><pre>print(isinstance(object, type))   # object 是 type 的实例
+print(issubclass(type, object))   # type 是 object 的子类
+print(type(object), type(type))   # 两个都是 type 造的，包括 type 自己
+print(type.__mro__)
+print(object.__mro__)</pre></div>
+
+  <figure class="play wide" data-fig="./rel.js" id="rel">
+    <div class="fig-head"><span class="fig-no">图 1</span><span>实例、类、元类：两种箭头</span></div>
+    <div class="fig-body">
+      <div class="fig-main"><canvas aria-label="type 和 object 的关系图，节点可以点"></canvas></div>
+      <div class="fig-side rel-side">
+        <p class="readout" aria-live="polite"></p>
+        <div class="btns"><button class="btn swap" type="button">两个参数对调</button></div>
+      </div>
+    </div>
+    <figcaption>点一个节点当第一个参数（实心红），再点一个当第二个参数（粗红框），右边给出 <code>isinstance</code> 和 <code>issubclass</code> 的结果，绿色是得出 True 走过的路。图里的 Meta、Person、p 来自三行代码：<code>class Meta(type): pass</code>、<code>class Person(metaclass=Meta): pass</code>、<code>p = Person()</code>。</figcaption>
+  </figure>
+
+  <p>两个函数的规则都很短。<code>isinstance(x, C)</code>：先走一步虚线到 <code>type(x)</code>，再沿着 <code>type(x).__mro__</code>（实线往上）找有没有 C，所以 isinstance 支持继承传递（这里不算 <code>__instancecheck__</code> 那种自定义钩子）。<code>issubclass(A, C)</code>：直接沿着 A 自己的 MRO 找，第一个参数必须是类。</p>
+  <p>开头那两句：<button class="try" data-target="#rel" data-set='{"a":"object","b":"type"}'>isinstance(object, type)</button><button class="try" data-target="#rel" data-set='{"a":"type","b":"object"}'>issubclass(type, object)</button><button class="try" data-target="#rel" data-set='{"a":"type","b":"type"}'>type 是自己的实例</button></p>
+  <p>类是元类的实例，但不是元类的子类：<button class="try" data-target="#rel" data-set='{"a":"Person","b":"type"}'>isinstance(Person, type)</button><button class="try" data-target="#rel" data-set='{"a":"p","b":"type"}'>p 就不是类了</button><button class="try" data-target="#rel" data-set='{"a":"p","b":"object"}'>但 p 还是 object</button></p>
+
+  <h3>元类</h3>
+  <p>元类就是“实例是类”的类，也就是 <code>type</code> 的子类。<code>type</code> 本身是最基本的元类；<code>class Meta(type)</code> 定义的是一个自定义元类。判断方法：<code>issubclass(M, type)</code>；等价地，如果一个类的 MRO 最后两项是 <code>type</code>、<code>object</code>，它就是元类。<button class="try" data-target="#rel" data-set='{"a":"Meta"}'>看 Meta 的 MRO</button></p>
+
+  <h2><span class="n">2</span>class 语句是 type(…) 的语法糖</h2>
+  <p><code>type</code> 有两种用法。传一个参数，<code>type(x)</code> 返回 x 的类型；传三个参数，<code>type(name, bases, namespace)</code> 当场造一个新类：name 是类名，bases 是基类的元组，namespace 是一个字典，会成为类的 <code>__dict__</code>。所以</p>
+<pre><code>class My_class:
+    ...</code></pre>
+  <p>基本等价于 <code>My_class = type("My_class", (object,), {...})</code>。元类也能这么造，只要基类里有 <code>type</code>：<code>MyMeta = type("MyMeta", (type,), {...})</code>。</p>
+
+  <div class="runner"><pre>class Dog:
+    sound = "woof"
+    def speak(self):
+        return self.sound * 2
+
+def speak(self):
+    return self.sound * 2
+
+Cat = type("Cat", (object,), {"sound": "meow", "speak": speak})
+
+print(Dog().speak(), Cat().speak())
+print(type(Dog), type(Cat))
+print(Cat.__name__, Cat.__bases__, Cat.__dict__["sound"])</pre></div>
+
+  <p>说“基本等价”，是因为 class 语句多做了几件事。按语言参考里“创建类对象”的描述，解释器遇到 <code>class Person(Base, metaclass=M):</code> 时：</p>
+  <ol>
+    <li><b>定元类。</b>候选是写明的 <code>metaclass=</code> 和每个基类的类型，取其中最“派生”的那个（它得是其余候选的子类，找不到就报 TypeError）；什么都没写、也没有基类，就是 <code>type</code>。</li>
+    <li><b>准备命名空间。</b>调用 <code>M.__prepare__(name, bases)</code>，默认返回一个空字典。</li>
+    <li><b>执行类体。</b>类体就是一段普通代码，在这个命名空间里跑一遍：赋值和 <code>def</code> 都变成字典里的键。</li>
+    <li><b>造类。</b>调用 <code>M(name, bases, namespace)</code>，也就是先 <code>M.__new__</code> 再 <code>M.__init__</code>。</li>
+    <li><b>绑定名字。</b>有类装饰器先套上，再把结果赋给 <code>Person</code>。</li>
+  </ol>
+
+  <h2><span class="n">3</span>元类的 __new__：类在这里诞生</h2>
+  <p>第 4 步是元类能插手的地方。重写元类的 <code>__new__</code>，就能在类诞生的那一刻看到（甚至改掉）它的名字、基类和类字典。跑一下：</p>
+
+  <div class="runner"><pre># 类的 dict (在类定义结束时就有了)
+class MyMeta(type):
+    def __new__(cls, name, bases, attrs):
+        print(f"1. 元类正在创建类 {name}")
+        print(f"2. 传入的 attrs (即未来的类dict): {attrs.keys()}")
+        # 此时 object.__new__ 还没运行
+        return super().__new__(cls, name, bases, attrs)
+
+class Person(metaclass=MyMeta):
+    species = "Human"  # 进类的 dict
+    def __init__(self, name):
+        self.name = name # 进实例的 dict
+
+print(f"3. 类创建完毕，查看 Person.__dict__: {Person.__dict__}")
+# --- 实例的 dict (实例化时由 object.__new__ 产生) ---
+print("4. 开始实例化...")
+p = Person("Jack") # 触发 object.__new__
+print(f"5. 实例 dict: {p.__dict__}")</pre></div>
+
+  <p>几个值得看的地方：</p>
+  <ul>
+    <li>第 1、2 行在 <code>class Person</code> 这条语句执行时就打印了，那时还没有任何 Person 的实例。<code>attrs</code> 里有类体定义的 <code>species</code>、<code>__init__</code>，还有解释器塞进去的 <code>__module__</code>、<code>__qualname__</code> 等。具体有哪些双下划线键随版本变：3.13 起多了 <code>__firstlineno__</code> 和 <code>__static_attributes__</code>（后者记下了 <code>self.name</code> 这种在方法里赋值的属性名）。这页跑的是 Python 3.14。</li>
+    <li>第 3 行的 <code>Person.__dict__</code> 是 <code>type.__new__</code> 拿 attrs 整理出来的：多了 <code>__dict__</code>、<code>__weakref__</code>、<code>__doc__</code>，<code>__qualname__</code> 被收进了类型对象自己的字段，外面再套一层只读的 mappingproxy。</li>
+    <li><code>species</code> 进类的字典，所有实例共享；<code>self.name</code> 进实例自己的字典，第 5 行只有 <code>{'name': 'Jack'}</code>。</li>
+  </ul>
+
+  <p>造实例时走的是另一条链：<code>Person("Jack")</code> 其实是在“调用”一个对象，调用的是它的类型的 <code>__call__</code>，也就是 <code>type(Person).__call__(Person, "Jack")</code>。<code>type.__call__</code> 里先调 <code>Person.__new__</code> 拿到一个空对象（没写就是继承来的 <code>object.__new__</code>），如果拿到的确实是 Person 的实例，再调 <code>__init__</code> 往里填东西：</p>
+
+  <div class="runner"><pre>class Meta(type):
+    def __call__(cls, *args):
+        print("Meta.__call__：要造一个", cls.__name__)
+        obj = super().__call__(*args)    # 里面先调 __new__，再调 __init__
+        print("Meta.__call__：造好了，交出去")
+        return obj
+
+class Point(metaclass=Meta):
+    def __new__(cls, *args):
+        print("  Point.__new__：分配一个空对象")
+        return super().__new__(cls)
+    def __init__(self, x, y):
+        print("  Point.__init__：往里填 x、y")
+        self.x, self.y = x, y
+
+pt = Point(1, 2)
+print(pt.__dict__)</pre></div>
+
+  <p>元类能管“类怎么造”和“实例怎么造”两件事，但日常很少需要它：只想在子类定义时做点检查或登记，用 <code>__init_subclass__</code>（3.6 起有）；只想改一个类，用类装饰器。这两个都比元类好读。</p>
+
+  <h2><span class="n">4</span>属性查找：obj.x 先看谁</h2>
+  <p>先认识<b>描述符</b>：一个对象，如果它的类型定义了 <code>__get__</code>，它就是描述符。只定义 <code>__get__</code> 的叫<b>非数据描述符</b>；还定义了 <code>__set__</code> 或 <code>__delete__</code> 的叫<b>数据描述符</b>。描述符只有放在类的字典里才起作用。</p>
+  <p>最常见的描述符其实是函数：所有函数都有 <code>__get__</code> 方法，用于返回 bound method。<code>obj.f</code> 拿到的不是 <code>C.f</code> 那个函数本身，而是 <code>C.f.__get__(obj, C)</code>，一个把 obj 绑成第一个参数的方法对象。<code>@property</code> 则是数据描述符：<code>property</code> 类型总是带着 <code>__set__</code> 和 <code>__delete__</code>，没写 setter 时调用它们会报错。</p>
+  <p>当你执行 <code>obj.func</code> 时，Python 内部逻辑（<code>object.__getattribute__</code>）是这样：</p>
+  <ol>
+    <li><b>数据描述符优先</b>：如果类里有 <code>func</code>（沿着 <code>type(obj).__mro__</code> 找）且它是数据描述符（比如 <code>@property</code>），那就用类的，调它的 <code>__get__</code>。普通函数只有 <code>__get__</code>，没有 <code>__set__</code>，所以不属于这一条。</li>
+    <li><b>实例字典</b>：如果在 <code>obj.__dict__</code> 里找到了 <code>func</code>，<b>直接返回这个值</b>。关键点：哪怕这个值是个函数，有 <code>__get__</code>，也直接返回，不会绑定。</li>
+    <li><b>非数据描述符</b>：如果实例里没找到，再看第 1 步在类里找到的东西：它有 <code>__get__</code>，这时候才触发绑定，返回 bound method。</li>
+    <li><b>类字典（无描述符）</b>：类里有，但没 <code>__get__</code>，直接返回。</li>
+    <li>都没有：类里定义了 <code>__getattr__</code> 就调它，否则抛 <code>AttributeError</code>。</li>
+  </ol>
+
+  <figure class="play wide" data-fig="./lookup.js" id="lookup">
+    <div class="fig-head"><span class="fig-no">图 2</span><span><code>obj.name</code> 一步一步查</span></div>
+    <div class="fig-body">
+      <div class="fig-main"><div class="lk" aria-live="polite"></div></div>
+      <div class="fig-side look-side">
+        <div class="ctl-label">查哪个名字</div>
+        <div class="seg names"><button value="a">a</button><button value="b">b</button><button value="c">c</button><button value="f">f</button><button value="x">x</button></div>
+        <div class="ctl-label">实例字典</div>
+        <button class="toggle inst" type="button" aria-pressed="false"></button>
+        <div class="ctl-label">走</div>
+        <div class="btns"><button class="btn step" type="button">下一步</button><button class="btn all" type="button">直接到结果</button><button class="btn again" type="button">从头</button></div>
+        <p class="readout" aria-live="polite"></p>
+      </div>
+    </div>
+    <figcaption>a 是数据描述符，b 是非数据描述符，c 是普通的类属性，f 是方法，x 哪儿都没有。红色开关决定实例字典里有没有同名的值，然后点“下一步”按上面的五条规则查（第 1 步先在类里找，后面几步根据找到的是什么来判断）。绿色是在哪一步拿到了结果。</figcaption>
+  </figure>
+
+  <p>同一个名字，实例字典里有没有同名值，结果可能完全不同：<button class="try" data-target="#lookup" data-set='{"name":"a","inst":true,"step":"end"}'>数据描述符压过实例</button><button class="try" data-target="#lookup" data-set='{"name":"b","inst":true,"step":"end"}'>实例压过非数据描述符</button><button class="try" data-target="#lookup" data-set='{"name":"f","inst":false,"step":"end"}'>方法在第 4 步绑定</button><button class="try" data-target="#lookup" data-set='{"name":"f","inst":true,"step":"end"}'>实例里的函数不绑定</button><button class="try" data-target="#lookup" data-set='{"name":"x","inst":false,"step":"end"}'>找不到</button></p>
+
+  <div class="runner"><pre>class Data:                        # 数据描述符：有 __get__，也有 __set__
+    def __get__(self, obj, cls):
+        return "Data.__get__ 的返回值"
+    def __set__(self, obj, value):
+        raise AttributeError("只读")
+
+class NonData:                     # 非数据描述符：只有 __get__
+    def __get__(self, obj, cls):
+        return "NonData.__get__ 的返回值"
+
+class C:
+    a = Data()
+    b = NonData()
+    c = "C 里的普通值"
+    def f(self):
+        return "方法"
+
+obj = C()
+print("实例里什么都没放：")
+for name in "abcf":
+    print(" ", name, "→", getattr(obj, name))
+
+obj.__dict__.update(a="实例里的 a", b="实例里的 b", c="实例里的 c", f="实例里的 f")
+print("实例里放了同名的：")
+for name in "abcf":
+    print(" ", name, "→", getattr(obj, name))</pre></div>
+
+  <p>注意这里是用 <code>obj.__dict__.update(...)</code> 往实例字典里硬塞的。如果写 <code>obj.a = "实例里的 a"</code>，赋值同样会先看类里有没有数据描述符，有就调它的 <code>__set__</code>，这里会被“只读”拦下来。数据描述符能管住读和写两个方向，这正是 <code>@property</code> 能做只读属性、能做校验的原因。</p>
+  <p>在类上取属性（<code>C.f</code>）走的是 <code>type.__getattribute__</code>，规则同一个思路，只是“实例字典”那一步换成了沿 MRO 的各个类字典，描述符的 <code>__get__</code> 收到的 obj 是 <code>None</code>。所以 <code>C.f</code> 拿到的就是函数本身。</p>
+
+  <h2><span class="n">5</span>多继承：C3 线性化</h2>
+  <p>第 1 步“沿 MRO 找”里的 MRO（method resolution order）是一张线性的列表：多继承的时候，Python 用 C3 算法把整棵继承图排成一条线，查属性、<code>super()</code> 都按这条线走。以下是手工计算 C3 MRO 的标准公式和步骤。</p>
+
+  <h3>公式</h3>
+  <p>假设类 C 继承自父类 \(B_1, B_2, \dots, B_n\)，即 <code>class C(B1, B2, ...):</code>。用 \(L(C)\) 表示类 C 的 MRO 列表：</p>
+  <p>\[L(C) = [C] + \operatorname{merge}\big(L(B_1),\ L(B_2),\ \dots,\ L(B_n),\ [B_1, B_2, \dots, B_n]\big)\]</p>
+  <ul>
+    <li><b>[C]</b>：C 永远在最前面。</li>
+    <li><b>\(L(B_i)\)</b>：父类们各自的 MRO 列表（都以 object 结尾）。</li>
+    <li><b>\([B_1, \dots, B_n]\)</b>：父类在定义时的原始顺序。这一项非常重要，保证了“局部优先顺序”：写在前面的父类在 MRO 里也在前面。</li>
+  </ul>
+
+  <h3>merge 的规则</h3>
+  <p>先分清两个词：<b>头</b>是列表的第一个元素，<b>尾</b>是除了第一个以外的所有元素。</p>
+  <ol>
+    <li>取出第一个列表的头 H。</li>
+    <li>检查 H 是否出现在<b>其他任何</b>列表的<b>尾部</b>：
+      <ul>
+        <li>没有出现（H 是合法的）：把 H 放进结果，并从所有列表中删掉它，然后回到第 1 步。</li>
+        <li>出现了（H 被别的列表“挡住”了：还有类必须排在它前面）：跳过这个列表，试下一个列表的头。</li>
+      </ul>
+    </li>
+    <li>重复，直到所有列表都空了。</li>
+    <li>如果某一轮所有列表的头都被挡住（死锁），就抛 <code>TypeError</code>：无法创建一致的 MRO。</li>
+  </ol>
+
+  <h3>手算一个</h3>
+<pre><code>class X: pass
+class Y: pass
+class Z: pass
+class A(X, Y): pass
+class B(Y, Z): pass
+class M(B, A, Z): pass</code></pre>
+  <p>已知 \(L(B) = [B, Y, Z, \text{object}]\)，\(L(A) = [A, X, Y, \text{object}]\)，\(L(Z) = [Z, \text{object}]\)。于是</p>
+  <p>\[L(M) = [M] + \operatorname{merge}\big([B, Y, Z, \text{obj}],\ [A, X, Y, \text{obj}],\ [Z, \text{obj}],\ [B, A, Z]\big)\]</p>
+  <div class="table-wrap">
+  <table class="merge">
+    <thead><tr><th>看谁</th><th>结论</th><th>之后剩下</th></tr></thead>
+    <tbody>
+      <tr><td>B</td><td>不在任何尾部，取出</td><td>[Y, Z, obj] [A, X, Y, obj] [Z, obj] [A, Z]</td></tr>
+      <tr><td>Y</td><td>在 [A, X, Y, obj] 的尾部（被 X 挡住），跳过</td><td>—</td></tr>
+      <tr><td>A</td><td>第二个列表的头，不在任何尾部，取出</td><td>[Y, Z, obj] [X, Y, obj] [Z, obj] [Z]</td></tr>
+      <tr><td>Y</td><td>在 [X, Y, obj] 的尾部，跳过</td><td>—</td></tr>
+      <tr><td>X</td><td>不在任何尾部，取出</td><td>[Y, Z, obj] [Y, obj] [Z, obj] [Z]</td></tr>
+      <tr><td>Y</td><td>第二个列表里的 Y 是头不是尾，取出</td><td>[Z, obj] [obj] [Z, obj] [Z]</td></tr>
+      <tr><td>Z</td><td>取出</td><td>[obj] [obj] [obj]</td></tr>
+      <tr><td>obj</td><td>取出</td><td>全空</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p>最终结果：<code>M → B → A → X → Y → Z → object</code>。和解释器算的对一下：</p>
+
+  <div class="runner"><pre>class X: pass
+class Y: pass
+class Z: pass
+class A(X, Y): pass
+class B(Y, Z): pass
+class M(B, A, Z): pass
+
+print([k.__name__ for k in M.__mro__])</pre></div>
+
+  <p>也可以把上面的规则原样写成代码，每取出一个类打印一次剩下的列表。改改 <code>class M(...)</code> 的父类顺序再跑：</p>
+
+  <div class="runner"><pre>def c3(cls):
+    """照着上面的规则手算 L(cls)，每取出一个类打印一次"""
+    seqs = [list(b.__mro__) for b in cls.__bases__] + [list(cls.__bases__)]
+    out = [cls]
+    show = lambda: "  ".join("[" + ", ".join(k.__name__ for k in s) + "]" for s in seqs if s)
+    print("开始  ", show())
+    while any(seqs):
+        for s in seqs:
+            if not s:
+                continue
+            head = s[0]
+            if not any(head in t[1:] for t in seqs):
+                break               # head 不在任何列表的尾部：可以取
+        else:
+            raise TypeError("所有列表的头都被挡住了，排不出一致的 MRO")
+        out.append(head)
+        seqs = [[k for k in s if k is not head] for s in seqs]
+        print("取出", head.__name__, show())
+    return out
+
+class X: pass
+class Y: pass
+class Z: pass
+class A(X, Y): pass
+class B(Y, Z): pass
+class M(B, A, Z): pass
+
+mro = c3(M)
+print([k.__name__ for k in mro], mro == list(M.__mro__))</pre></div>
+
+  <p>排不出来的例子：P 要求 X 在 Y 前面，Q 要求 Y 在 X 前面，同时继承两者就矛盾了，类根本建不起来：</p>
+
+  <div class="runner"><pre>class X: pass
+class Y: pass
+class P(X, Y): pass    # 要求 X 在 Y 前面
+class Q(Y, X): pass    # 要求 Y 在 X 前面
+class R(P, Q): pass    # 两个要求矛盾</pre></div>
+
+  <p>C3 保证的三件事也就清楚了：子类排在父类前面；同一个类的父类按书写顺序排；子类的 MRO 不会打乱父类 MRO 里已经定好的先后。<code>super()</code> 找的是这条线上的“下一个”，不一定是你以为的那个父类：在 M 的方法里调 <code>super()</code>，下一个是 B；在 B 的方法里（对象是 M 的实例时）再调 <code>super()</code>，下一个是 A，而 A 并不是 B 的父类。</p>
+</main>
+<footer class="site"><a href="/">← 首页</a><span>Cr's Blog</span><a href="/">首页 →</a></footer>
+</body>
+</html>

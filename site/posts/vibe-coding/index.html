@@ -9,7 +9,7 @@
 <script type="module" src="/assets/page.js"></script>
 </head>
 <body>
-<header class="site"><a class="name" href="/">Cr's Blog</a><nav><a href="/#essays">随笔</a><a href="/#notes" aria-current="page">笔记</a><a href="/#tools">小工具</a></nav></header>
+<header class="site"><a class="name" href="/">Cr's Blog</a><nav><a href="/articles/">文章</a><a href="/essays/">随笔</a><a href="/notes/">速查</a><a href="/tools/">工具</a><a href="/archive/">归档</a></nav></header>
 <main class="post">
   <div class="kicker"><span>经验</span><span>2026-03-20</span></div>
   <h1>Vibe coding的经验总结</h1>
@@ -21,7 +21,6 @@
 <p>在多次开发迭代的信息积累中，开发不仅仅是为了解决当下的 Bug，更要捕获那些能够降低未来搜索空间的信息。正所谓“一力降十会”，应尽量使用基座能力强的 AI。随着 context 的不断变大，早期的提示词工程可能会逐渐失效，但沉淀下来的工程经验依然极具价值。遇到问题不要修好就结束，而应考虑将其固化为 Gate 脚本或技术文档，避免同类错误再次发生。除此之外，Gate 脚本必须记录命中率 Log，以确保拦截规则是有价值的，不会过严或过宽。例如，若单文件代码行数限制被频繁触发，就需要重新评估该指标是否合理。</p>
 <p>要让 AI 对未通过 Gate 检查的问题进行深度复盘。复盘绝不能流于形式，类似“抱歉，我没想到xxx”的口头表态毫无意义。核心是要准确记录犯错的原因，并持续构造项目的错误列表。Gate 脚本的“命中率 Log”只有在问题高频发生时才具备较大的统计意义。开发中遇到的长尾缺陷和边缘情况对于完善系统边界具有很高的参考价值，尤其是高频触发的 Edge Cases，更值得重点关注。</p>
 <p>人机沟通的记录同样需要复盘，以整理出交互过程中的低效点。在复杂工程中，明确指示 AI“正确路径该怎么走”往往很难，但我们可以利用经验划定“绝对不能怎么做”的禁区。配合 AI 自身的概率平均性与随机性，在排除了错误选项后，它自然能探索出正确的结果。不仅是技术架构，AI 在执行任何任务时，都应该为后续的复盘预留数据接口。甚至，“复盘”这套机制本身，也应该具备持续自我迭代的能力。</p>
-  <p class="src">原文：Chr0mium24/Blog 仓库，迁移前 main（astro-legacy 分支）的 src/content/posts/vibe-coding.md</p>
 </main>
 <footer class="site"><a href="/">← 首页</a><span>Cr's Blog</span><span></span></footer>
 </body>
