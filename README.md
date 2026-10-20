@@ -2,7 +2,7 @@
 
 手写的静态博客，部署在 <https://chr0mium.link>。没有构建步骤：`site/` 里是什么，线上就是什么。
 
-旧的 Astro（Fuwari）版本完整保留在分支 [`astro-legacy`](https://github.com/Chr0mium24/Blog/tree/astro-legacy)。
+旧的 Astro（Fuwari）版本完整保留在分支 [`astro-legacy`](https://github.com/Chr0mium24/Chr0mium24.github.io/tree/astro-legacy)。
 
 ## 目录
 
